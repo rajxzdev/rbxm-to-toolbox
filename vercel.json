@@ -3,12 +3,5 @@
     "api/upload.js": {
       "maxDuration": 60
     }
-  },
-  "routes": [
-    {
-      "src": "/api/upload",
-      "methods": ["POST", "OPTIONS"],
-      "dest": "/api/upload.js"
-    }
-  ]
+  }
 }

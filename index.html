@@ -207,12 +207,37 @@ function clearFile(){
 
 function doUpload(){
   if(!ok){alert('Verify first');return;}
-  if(!file){alert('Select a file');return;}
+  if(!file){alert('Select file');return;}
 
-  var uid=document.getElementById('uid').value.trim();
-  var key=document.getElementById('key').value.trim();
   var btn=document.getElementById('ubtn');
   var msg=document.getElementById('umsg');
+
+  btn.classList.add('ld');btn.disabled=true;
+  msg.className='msg info';msg.textContent='⏳ Testing what server receives...';
+
+  var fd=new FormData();
+  fd.append('file',file);
+  fd.append('userId',document.getElementById('uid').value.trim());
+  fd.append('apiKey',document.getElementById('key').value.trim());
+  fd.append('assetType',document.getElementById('atype').value);
+  fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
+  fd.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
+
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/testupload');
+  x.timeout=15000;
+
+  x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Timeout';};
+  x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Network error';};
+
+  x.onload=function(){
+    btn.classList.remove('ld');btn.disabled=false;
+    msg.className='msg info';
+    msg.textContent='DEBUG: '+x.responseText;
+  };
+
+  x.send(fd);
+  }
 
   btn.classList.add('ld');btn.disabled=true;
   msg.className='msg info';msg.textContent='⏳ Step 1: Sending to server...';

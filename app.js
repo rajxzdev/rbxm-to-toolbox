@@ -1,342 +1,230 @@
-// ============ STARS GENERATOR ============
-(function generateStars() {
-  const container = document.getElementById('stars');
-  const count = 120;
-  for (let i = 0; i < count; i++) {
-    const star = document.createElement('div');
-    star.className = 'star';
-    star.style.left = Math.random() * 100 + '%';
-    star.style.top = Math.random() * 100 + '%';
-    star.style.setProperty('--duration', (2 + Math.random() * 4) + 's');
-    star.style.setProperty('--max-opacity', (0.3 + Math.random() * 0.7));
-    star.style.animationDelay = (Math.random() * 5) + 's';
-    star.style.width = star.style.height = (1 + Math.random() * 2) + 'px';
-    container.appendChild(star);
+(function(){
+  var c=document.getElementById('stars');
+  for(var i=0;i<120;i++){
+    var s=document.createElement('div');
+    s.className='star';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.setProperty('--d',(2+Math.random()*4)+'s');
+    s.style.setProperty('--o',(0.3+Math.random()*0.7));
+    s.style.animationDelay=Math.random()*5+'s';
+    var sz=1+Math.random()*2;
+    s.style.width=s.style.height=sz+'px';
+    c.appendChild(s);
   }
 })();
 
-// ============ STATE ============
-let verified = false;
-let selectedFile = null;
+var verified=false;
+var selectedFile=null;
 
-// ============ HELP MODAL ============
-function toggleHelp() {
-  const modal = document.getElementById('helpModal');
-  modal.classList.toggle('show');
+function toggleHelp(){document.getElementById('helpModal').classList.toggle('show');}
+document.getElementById('helpModal').addEventListener('click',function(e){if(e.target===this)toggleHelp();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('helpModal').classList.remove('show');});
+
+function togglePassword(){
+  var i=document.getElementById('apiKey'),ic=document.getElementById('eyeIcon');
+  if(i.type==='password'){i.type='text';ic.className='fas fa-eye-slash';}
+  else{i.type='password';ic.className='fas fa-eye';}
 }
 
-document.getElementById('helpModal').addEventListener('click', function (e) {
-  if (e.target === this) toggleHelp();
-});
-
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    document.getElementById('helpModal').classList.remove('show');
-  }
-});
-
-// ============ PASSWORD TOGGLE ============
-function togglePassword() {
-  const input = document.getElementById('apiKey');
-  const icon = document.getElementById('eyeIcon');
-  if (input.type === 'password') {
-    input.type = 'text';
-    icon.className = 'fas fa-eye-slash';
-  } else {
-    input.type = 'password';
-    icon.className = 'fas fa-eye';
-  }
+function showToast(m,t){
+  t=t||'info';
+  var c=document.getElementById('toastContainer'),d=document.createElement('div');
+  d.className='toast '+t;
+  var ic={success:'check-circle',error:'exclamation-circle',info:'info-circle'};
+  d.innerHTML='<i class="fas fa-'+(ic[t]||'info-circle')+'"></i><span>'+m+'</span>';
+  c.appendChild(d);
+  setTimeout(function(){d.classList.add('out');setTimeout(function(){d.remove();},300);},3500);
 }
 
-// ============ TOAST ============
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  const icons = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' };
-  toast.innerHTML = `<i class="fas fa-${icons[type] || 'info-circle'}"></i><span>${message}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('removing');
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
-}
+function verifyCredentials(){
+  var uid=document.getElementById('userId').value.trim();
+  var key=document.getElementById('apiKey').value.trim();
+  var btn=document.getElementById('verifyBtn');
+  var res=document.getElementById('verifyResult');
 
-// ============ VERIFY CREDENTIALS ============
-async function verifyCredentials() {
-  const userId = document.getElementById('userId').value.trim();
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const btn = document.getElementById('verifyBtn');
-  const result = document.getElementById('verifyResult');
+  if(!uid){showToast('Enter User ID','error');return;}
+  if(!/^\d+$/.test(uid)){showToast('Must be number','error');return;}
+  if(!key){showToast('Enter API Key','error');return;}
 
-  if (!userId) {
-    showToast('Please enter your User ID', 'error');
-    document.getElementById('userId').focus();
-    return;
-  }
-  if (!/^\d+$/.test(userId)) {
-    showToast('User ID must be a number', 'error');
-    document.getElementById('userId').focus();
-    return;
-  }
-  if (!apiKey) {
-    showToast('Please enter your API Key', 'error');
-    document.getElementById('apiKey').focus();
-    return;
-  }
-  if (apiKey.length < 20) {
-    showToast('API Key seems too short', 'error');
-    return;
-  }
+  btn.classList.add('loading');btn.disabled=true;
+  res.className='verify-result';res.style.display='none';
 
-  btn.classList.add('loading');
-  btn.disabled = true;
-  result.className = 'verify-result';
-  result.style.display = 'none';
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/upload',true);
+  x.setRequestHeader('Content-Type','application/json');
+  x.setRequestHeader('x-action','verify-user');
 
-  try {
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-action': 'verify-user'
-      },
-      body: JSON.stringify({ userId, apiKey })
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.valid) {
-      verified = true;
-      result.className = 'verify-result success show';
-      let msg = `<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, ${data.displayName}`;
-      if (data.keyValid === false) {
-        msg += `<br><small style="color:var(--warning)">⚠ API Key might lack permissions: ${data.keyError}</small>`;
-      }
-      msg += `</div>`;
-      result.innerHTML = msg;
-
-      document.getElementById('step1Status').innerHTML = '<i class="fas fa-check-circle" style="color:var(--success)"></i>';
-
-      const step2 = document.getElementById('step2');
-      step2.classList.remove('locked');
-      step2.classList.add('unlocked');
-      step2.querySelector('.lock-icon')?.remove();
-
-      showToast('Credentials verified!', 'success');
-    } else {
-      result.className = 'verify-result error show';
-      result.innerHTML = `<i class="fas fa-exclamation-circle"></i><div>${data.error || 'Verification failed'}</div>`;
-      showToast(data.error || 'Verification failed', 'error');
+  x.onload=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    var d;
+    try{d=JSON.parse(x.responseText);}catch(e){
+      res.className='verify-result error show';
+      res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Server error</div>';
+      return;
     }
-  } catch (err) {
-    result.className = 'verify-result error show';
-    result.innerHTML = `<i class="fas fa-exclamation-circle"></i><div>Network error: ${err.message}</div>`;
-    showToast('Network error', 'error');
-  }
-
-  btn.classList.remove('loading');
-  btn.disabled = false;
-}
-
-// ============ FILE HANDLING ============
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-
-dropZone.addEventListener('click', () => fileInput.click());
-
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('dragover');
-});
-
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('dragover');
-});
-
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-
-fileInput.addEventListener('change', (e) => {
-  if (e.target.files.length) handleFile(e.target.files[0]);
-});
-
-function handleFile(file) {
-  const validExts = ['.rbxm', '.rbxmx', '.fbx', '.obj', '.png', '.jpg', '.jpeg', '.mp3', '.ogg'];
-  const ext = '.' + file.name.split('.').pop().toLowerCase();
-  if (!validExts.includes(ext)) {
-    showToast('Unsupported file type. Use: ' + validExts.join(', '), 'error');
-    return;
-  }
-  if (file.size > 50 * 1024 * 1024) {
-    showToast('File too large (max 50MB)', 'error');
-    return;
-  }
-
-  selectedFile = file;
-  dropZone.style.display = 'none';
-  document.getElementById('fileInfo').style.display = 'block';
-  document.getElementById('fileName').textContent = file.name;
-  document.getElementById('fileSize').textContent = formatSize(file.size);
-
-  // Auto-detect type
-  const typeMap = {
-    '.rbxm': 'Model', '.rbxmx': 'Model',
-    '.png': 'Decal', '.jpg': 'Decal', '.jpeg': 'Decal',
-    '.mp3': 'Audio', '.ogg': 'Audio',
-    '.fbx': 'Mesh', '.obj': 'Mesh'
+    if(x.status>=200&&x.status<300&&d.valid){
+      verified=true;
+      var h='<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, '+d.displayName;
+      if(d.keyValid===false)h+='<br><small style="color:var(--warning)">⚠ '+(d.keyError||'Key issue')+'</small>';
+      h+='</div>';
+      res.className='verify-result success show';res.innerHTML=h;
+      document.getElementById('step1Status').innerHTML='<i class="fas fa-check-circle" style="color:var(--success)"></i>';
+      var s2=document.getElementById('step2');s2.classList.remove('locked');s2.classList.add('unlocked');
+      var lb=document.getElementById('lock2');if(lb)lb.style.display='none';
+      showToast('Verified!','success');
+    }else{
+      res.className='verify-result error show';
+      res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>'+(d.error||'Failed')+'</div>';
+      showToast(d.error||'Failed','error');
+    }
   };
-  if (typeMap[ext]) document.getElementById('assetType').value = typeMap[ext];
-
-  // Auto-fill name
-  if (!document.getElementById('assetName').value) {
-    document.getElementById('assetName').value = file.name.replace(/\.[^.]+$/, '');
-  }
-
-  showToast('File ready: ' + file.name, 'success');
+  x.onerror=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    res.className='verify-result error show';
+    res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Network error</div>';
+    showToast('Network error','error');
+  };
+  x.send(JSON.stringify({userId:uid,apiKey:key}));
 }
 
-function removeFile() {
-  selectedFile = null;
-  fileInput.value = '';
-  dropZone.style.display = '';
-  document.getElementById('fileInfo').style.display = 'none';
+var dz=document.getElementById('dropZone'),fi=document.getElementById('fileInput');
+dz.addEventListener('click',function(){fi.click();});
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('dragover');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0]);});
+fi.addEventListener('change',function(e){if(e.target.files.length)handleFile(e.target.files[0]);});
+
+function handleFile(f){
+  var exts=['.rbxm','.rbxmx','.fbx','.obj','.png','.jpg','.jpeg','.mp3','.ogg'];
+  var ext='.'+f.name.split('.').pop().toLowerCase();
+  if(exts.indexOf(ext)===-1){showToast('Bad format','error');return;}
+  if(f.size>50*1024*1024){showToast('Too large','error');return;}
+  selectedFile=f;
+  dz.style.display='none';
+  document.getElementById('fileInfo').classList.add('show');
+  document.getElementById('fileName').textContent=f.name;
+  document.getElementById('fileSize').textContent=fmtSize(f.size);
+  var tm={'.rbxm':'Model','.rbxmx':'Model','.png':'Decal','.jpg':'Decal','.jpeg':'Decal','.mp3':'Audio','.ogg':'Audio','.fbx':'Mesh','.obj':'Mesh'};
+  if(tm[ext])document.getElementById('assetType').value=tm[ext];
+  if(!document.getElementById('assetName').value)document.getElementById('assetName').value=f.name.replace(/\.[^.]+$/,'');
+  showToast('File ready','success');
 }
 
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1048576).toFixed(1) + ' MB';
+function removeFile(){
+  selectedFile=null;fi.value='';dz.style.display='';
+  document.getElementById('fileInfo').classList.remove('show');
 }
 
-// ============ UPLOAD ============
-async function uploadAsset() {
-  if (!verified) {
-    showToast('Please verify credentials first', 'error');
-    return;
-  }
-  if (!selectedFile) {
-    showToast('Please select a file', 'error');
-    return;
-  }
+function fmtSize(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return(b/1024).toFixed(1)+' KB';
+  return(b/1048576).toFixed(1)+' MB';
+}
 
-  const userId = document.getElementById('userId').value.trim();
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const assetName = document.getElementById('assetName').value.trim() || selectedFile.name.replace(/\.[^.]+$/, '');
-  const assetType = document.getElementById('assetType').value;
-  const assetDesc = document.getElementById('assetDesc').value.trim();
+function uploadAsset(){
+  if(!verified){showToast('Verify first','error');return;}
+  if(!selectedFile){showToast('Select file','error');return;}
 
-  const btn = document.getElementById('uploadBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
+  var uid=document.getElementById('userId').value.trim();
+  var key=document.getElementById('apiKey').value.trim();
+  var name=document.getElementById('assetName').value.trim()||selectedFile.name.replace(/\.[^.]+$/,'');
+  var type=document.getElementById('assetType').value;
+  var desc=document.getElementById('assetDesc').value.trim();
 
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-  formData.append('userId', userId);
-  formData.append('apiKey', apiKey);
-  formData.append('assetType', assetType);
-  formData.append('displayName', assetName);
-  formData.append('description', assetDesc || 'Uploaded via RBXM Converter');
+  var btn=document.getElementById('uploadBtn');
+  var prog=document.getElementById('progressWrap');
+  var bar=document.getElementById('progressBar');
+  var ptxt=document.getElementById('progressText');
 
-  try {
-    showToast('Uploading to Roblox...', 'info');
+  btn.classList.add('loading');btn.disabled=true;
+  prog.classList.add('show');bar.style.width='20%';ptxt.textContent='Uploading...';
 
-    const res = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    });
+  var fd=new FormData();
+  fd.append('file',selectedFile);
+  fd.append('userId',uid);
+  fd.append('apiKey',key);
+  fd.append('assetType',type);
+  fd.append('displayName',name);
+  fd.append('description',desc||'Uploaded via converter');
 
-    const data = await res.json();
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/upload',true);
 
-    if (res.ok && data.success) {
-      // Unlock step 3
-      const step3 = document.getElementById('step3');
-      step3.classList.remove('locked');
-      step3.classList.add('unlocked');
-      step3.querySelector('.lock-icon')?.remove();
+  x.upload.onprogress=function(e){
+    if(e.lengthComputable){var p=Math.round((e.loaded/e.total)*70)+20;bar.style.width=p+'%';ptxt.textContent='Uploading... '+p+'%';}
+  };
 
-      document.getElementById('resultAssetId').textContent = data.assetId || 'Processing...';
-      document.getElementById('resultInsertUrl').textContent = data.insertUrl || 'Processing...';
+  x.onload=function(){
+    bar.style.width='100%';ptxt.textContent='Processing...';
+    btn.classList.remove('loading');btn.disabled=false;
 
-      if (data.toolboxUrl) {
-        const link = document.getElementById('resultToolboxLink');
-        link.href = data.toolboxUrl;
-        link.style.display = 'flex';
+    var d;
+    try{d=JSON.parse(x.responseText);}catch(e){showToast('Bad response','error');setTimeout(function(){prog.classList.remove('show');},1000);return;}
+
+    var s3=document.getElementById('step3');
+    s3.classList.remove('locked');s3.classList.add('unlocked');
+    var lb=document.getElementById('lock3');if(lb)lb.style.display='none';
+
+    if(x.status>=200&&x.status<300&&d.success){
+      document.getElementById('resultIcon').innerHTML='<i class="fas fa-check-circle"></i>';
+      document.getElementById('resultIcon').className='result-icon success';
+      if(d.assetId){
+        document.getElementById('resultTitle').textContent='Asset Uploaded!';
+        document.getElementById('resultAssetId').textContent=d.assetId;
+        document.getElementById('resultInsertUrl').textContent=d.insertUrl||'rbxassetid://'+d.assetId;
+        var tl=document.getElementById('resultToolboxLink');
+        tl.href=d.toolboxUrl||'https://www.roblox.com/library/'+d.assetId;
+        document.getElementById('toolboxRow').style.display='';
+      }else{
+        document.getElementById('resultTitle').textContent='Submitted!';
+        document.getElementById('resultAssetId').textContent='Check inventory';
+        document.getElementById('resultInsertUrl').textContent='Processing...';
+        document.getElementById('toolboxRow').style.display='none';
       }
-
-      if (!data.assetId && data.raw) {
-        document.getElementById('resultTitle').textContent = 'Upload Submitted!';
-        document.getElementById('resultAssetId').textContent = 'Processing (check Roblox inventory)';
-      } else {
-        document.getElementById('resultTitle').textContent = 'Asset Uploaded!';
-      }
-
-      document.getElementById('resultContent').querySelector('.result-icon').innerHTML = '<i class="fas fa-check-circle"></i>';
-      document.getElementById('resultContent').querySelector('.result-icon').className = 'result-icon success-icon';
-
-      step3.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      showToast('Upload successful!', 'success');
-    } else {
-      // Show error in step 3
-      const step3 = document.getElementById('step3');
-      step3.classList.remove('locked');
-      step3.classList.add('unlocked');
-      step3.querySelector('.lock-icon')?.remove();
-
-      document.getElementById('resultTitle').textContent = 'Upload Failed';
-      document.getElementById('resultContent').querySelector('.result-icon').innerHTML = '<i class="fas fa-times-circle"></i>';
-      document.getElementById('resultContent').querySelector('.result-icon').className = 'result-icon error-icon-result';
-
-      const errorMsg = data.error || 'Unknown error';
-      document.getElementById('resultAssetId').textContent = 'Error';
-      document.getElementById('resultInsertUrl').textContent = errorMsg;
-      document.getElementById('resultToolboxLink').style.display = 'none';
-
-      step3.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      showToast('Upload failed: ' + errorMsg, 'error');
+      showToast('Success!','success');
+    }else{
+      document.getElementById('resultIcon').innerHTML='<i class="fas fa-times-circle"></i>';
+      document.getElementById('resultIcon').className='result-icon err';
+      document.getElementById('resultTitle').textContent='Failed';
+      document.getElementById('resultAssetId').textContent='Error';
+      document.getElementById('resultInsertUrl').textContent=d.error||'Unknown';
+      document.getElementById('toolboxRow').style.display='none';
+      showToast(d.error||'Failed','error');
     }
-  } catch (err) {
-    showToast('Network error: ' + err.message, 'error');
-  }
+    s3.scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(function(){prog.classList.remove('show');bar.style.width='0%';},1000);
+  };
 
-  btn.classList.remove('loading');
-  btn.disabled = false;
+  x.onerror=function(){
+    btn.classList.remove('loading');btn.disabled=false;prog.classList.remove('show');
+    showToast('Network error','error');
+  };
+  x.send(fd);
 }
 
-// ============ COPY ============
-function copyText(el) {
-  const code = el.querySelector('code');
-  if (!code) return;
-  const text = code.textContent;
-  if (!text || text === '—' || text === 'Error') return;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copied!', 'success');
-    el.style.borderColor = 'var(--success)';
-    setTimeout(() => el.style.borderColor = '', 1000);
+function copyText(el){
+  var c=el.querySelector('code');if(!c)return;
+  var t=c.textContent;if(!t||t==='—'||t==='Error')return;
+  navigator.clipboard.writeText(t).then(function(){
+    showToast('Copied!','success');
+    el.style.borderColor='var(--success)';
+    setTimeout(function(){el.style.borderColor='';},1000);
   });
 }
 
-// ============ RESET ============
-function resetAll() {
+function resetUpload(){
   removeFile();
-  document.getElementById('assetName').value = '';
-  document.getElementById('assetDesc').value = '';
-  document.getElementById('assetType').value = 'Model';
-
-  const step3 = document.getElementById('step3');
-  step3.classList.add('locked');
-  step3.classList.remove('unlocked');
-
-  document.getElementById('resultAssetId').textContent = '—';
-  document.getElementById('resultInsertUrl').textContent = '—';
-  document.getElementById('resultToolboxLink').style.display = 'none';
-  document.getElementById('resultTitle').textContent = 'Asset Uploaded!';
-  document.getElementById('resultContent').querySelector('.result-icon').innerHTML = '<i class="fas fa-check-circle"></i>';
-  document.getElementById('resultContent').querySelector('.result-icon').className = 'result-icon success-icon';
-
-  document.getElementById('step2').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  showToast('Ready for another upload', 'info');
+  document.getElementById('assetName').value='';
+  document.getElementById('assetDesc').value='';
+  document.getElementById('assetType').value='Model';
+  var s3=document.getElementById('step3');s3.classList.add('locked');s3.classList.remove('unlocked');
+  document.getElementById('resultAssetId').textContent='—';
+  document.getElementById('resultInsertUrl').textContent='—';
+  document.getElementById('toolboxRow').style.display='';
+  document.getElementById('resultIcon').innerHTML='<i class="fas fa-check-circle"></i>';
+  document.getElementById('resultIcon').className='result-icon success';
+  document.getElementById('resultTitle').textContent='Asset Uploaded!';
+  document.getElementById('step2').scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('Ready!','info');
 }

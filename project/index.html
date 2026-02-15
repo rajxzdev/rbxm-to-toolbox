@@ -1,1 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RBXM → Roblox Asset Converter</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <!-- Stars -->
+  <div class="stars" id="stars"></div>
+  <div class="shooting-stars">
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+    <div class="shooting-star"></div>
+  </div>
 
+  <!-- Floating Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal glass-card">
+      <button class="modal-close" onclick="toggleHelp()"><i class="fas fa-times"></i></button>
+      <h2><i class="fas fa-question-circle"></i> Help Guide</h2>
+      <div class="help-content">
+        <div class="help-section">
+          <h3><i class="fas fa-key"></i> How to Get API Key</h3>
+          <ol>
+            <li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
+            <li>Click <strong>"Create API Key"</strong></li>
+            <li>Name it anything (e.g. "AssetUploader")</li>
+            <li>Under <strong>Access Permissions</strong>, add:
+              <ul>
+                <li><strong>Assets</strong> → check <strong>Read</strong> and <strong>Write</strong></li>
+              </ul>
+            </li>
+            <li>Under <strong>Accepted IP</strong>, add <code>0.0.0.0/0</code> (allows all IPs)</li>
+            <li>Click <strong>Save & Generate Key</strong></li>
+            <li>Copy the key and paste it here</li>
+          </ol>
+        </div>
+        <div class="help-section">
+          <h3><i class="fas fa-user"></i> How to Find User ID</h3>
+          <ol>
+            <li>Go to your Roblox profile page</li>
+            <li>Look at the URL: <code>roblox.com/users/<strong>123456</strong>/profile</code></li>
+            <li>The number is your User ID</li>
+          </ol>
+        </div>
+        <div class="help-section">
+          <h3><i class="fas fa-file"></i> How to Get RBXM File</h3>
+          <ol>
+            <li>Open <strong>Roblox Studio</strong></li>
+            <li>Right-click the model in Explorer</li>
+            <li>Select <strong>"Save to File"</strong></li>
+            <li>Choose <code>.rbxm</code> format</li>
+            <li>Upload that file here</li>
+          </ol>
+        </div>
+        <div class="help-section">
+          <h3><i class="fas fa-cog"></i> Asset Types</h3>
+          <ul>
+            <li><strong>Model</strong> — 3D models, tools, parts (.rbxm)</li>
+            <li><strong>Decal</strong> — Image textures (.png, .jpg)</li>
+            <li><strong>Audio</strong> — Sound files (.mp3, .ogg)</li>
+            <li><strong>Mesh</strong> — Mesh geometry (.fbx, .obj)</li>
+          </ul>
+        </div>
+        <div class="help-section">
+          <h3><i class="fas fa-exclamation-triangle"></i> Common Errors</h3>
+          <ul>
+            <li><strong>401/403</strong> — API Key invalid or missing permissions</li>
+            <li><strong>400</strong> — File format wrong or too large</li>
+            <li><strong>429</strong> — Rate limited, wait and retry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="container">
+    <header class="glass-card header" id="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-cube"></i>
+        </div>
+        <div>
+          <h1>RBXM → Asset ID</h1>
+          <p class="subtitle">Convert Roblox files to Toolbox assets</p>
+        </div>
+      </div>
+      <button class="help-btn glass-btn" onclick="toggleHelp()" title="Help">
+        <i class="fas fa-question"></i>
+      </button>
+    </header>
+
+    <!-- Step 1: Auth -->
+    <div class="step glass-card" id="step1">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <h2>Authentication</h2>
+        <div class="step-status" id="step1Status"></div>
+      </div>
+      <div class="step-body">
+        <div class="input-group">
+          <label><i class="fas fa-user"></i> User ID</label>
+          <div class="input-wrap">
+            <input type="text" id="userId" placeholder="e.g. 123456789" autocomplete="off" />
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i class="fas fa-key"></i> API Key</label>
+          <div class="input-wrap">
+            <input type="password" id="apiKey" placeholder="Paste your Open Cloud API Key" autocomplete="off" />
+            <button class="toggle-eye" onclick="togglePassword()">
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+        <button class="action-btn glass-btn" id="verifyBtn" onclick="verifyCredentials()">
+          <i class="fas fa-shield-alt"></i>
+          <span>Verify Credentials</span>
+        </button>
+        <div class="verify-result" id="verifyResult"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Upload -->
+    <div class="step glass-card locked" id="step2">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <h2>Upload & Configure</h2>
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+      </div>
+      <div class="step-body">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <p>Drag & drop your <strong>.rbxm</strong> file here</p>
+          <span>or click to browse</span>
+          <input type="file" id="fileInput" accept=".rbxm,.rbxmx,.fbx,.obj,.png,.jpg,.jpeg,.mp3,.ogg" hidden />
+        </div>
+        <div class="file-info" id="fileInfo" style="display:none">
+          <div class="file-card glass-card">
+            <i class="fas fa-file-code"></i>
+            <div>
+              <strong id="fileName"></strong>
+              <span id="fileSize"></span>
+            </div>
+            <button class="remove-file" onclick="removeFile()"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <div class="config-grid">
+          <div class="input-group">
+            <label><i class="fas fa-tag"></i> Asset Name</label>
+            <input type="text" id="assetName" placeholder="My Cool Model" maxlength="50" />
+          </div>
+          <div class="input-group">
+            <label><i class="fas fa-list"></i> Asset Type</label>
+            <select id="assetType">
+              <option value="Model">Model (.rbxm)</option>
+              <option value="Decal">Decal (.png/.jpg)</option>
+              <option value="Audio">Audio (.mp3/.ogg)</option>
+              <option value="Mesh">Mesh (.fbx/.obj)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i class="fas fa-align-left"></i> Description</label>
+          <textarea id="assetDesc" placeholder="Optional description..." maxlength="1000" rows="2"></textarea>
+        </div>
+        <button class="action-btn glass-btn upload-btn" id="uploadBtn" onclick="uploadAsset()">
+          <i class="fas fa-rocket"></i>
+          <span>Upload to Roblox</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Result -->
+    <div class="step glass-card locked" id="step3">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <h2>Result</h2>
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+      </div>
+      <div class="step-body">
+        <div class="result-content" id="resultContent">
+          <div class="result-card glass-card">
+            <div class="result-icon success-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 id="resultTitle">Asset Uploaded!</h3>
+            <div class="result-details">
+              <div class="result-row">
+                <span>Asset ID</span>
+                <div class="copyable" onclick="copyText(this)">
+                  <code id="resultAssetId">—</code>
+                  <i class="fas fa-copy"></i>
+                </div>
+              </div>
+              <div class="result-row">
+                <span>Insert URL</span>
+                <div class="copyable" onclick="copyText(this)">
+                  <code id="resultInsertUrl">—</code>
+                  <i class="fas fa-copy"></i>
+                </div>
+              </div>
+              <div class="result-row">
+                <span>Toolbox Link</span>
+                <a id="resultToolboxLink" href="#" target="_blank" class="toolbox-link">
+                  <i class="fas fa-external-link-alt"></i> Open in Toolbox
+                </a>
+              </div>
+            </div>
+            <button class="action-btn glass-btn" onclick="resetAll()">
+              <i class="fas fa-redo"></i>
+              <span>Convert Another</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="glass-card footer">
+      <p>Made for Roblox Developers · Uses Open Cloud API</p>
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+        </html>

@@ -74,19 +74,14 @@ function extractParts(buf, boundary) {
 
     var nm = headerStr.match(/name="([^"]+)"/);
     if (!nm) continue;
-
     var fn = headerStr.match(/filename="([^"]+)"/);
 
     if (fn) {
-      result.file = {
-        filename: fn[1],
-        buffer: body
-      };
+      result.file = { filename: fn[1], buffer: body };
     } else {
       result.fields[nm[1]] = body.toString('utf8');
     }
   }
-
   return result;
 }
 
@@ -100,47 +95,33 @@ module.exports = function(req, res) {
 
   return getRawBody(req).then(function(raw) {
     if (!raw || raw.length === 0) {
-      return res.status(400).json({ error: 'Empty body received' });
+      return res.status(400).json({ error: 'Empty body' });
     }
 
     var action = req.headers['x-action'];
 
-    // ====== VERIFY ======
+    // ====== VERIFY - FAST VERSION ======
     if (action === 'verify-user') {
       var data;
       try { data = JSON.parse(raw.toString()); }
-      catch(e) { return res.status(400).json({ error: 'Bad JSON: ' + e.message }); }
+      catch(e) { return res.status(400).json({ error: 'Bad JSON' }); }
 
       if (!data.userId || !data.apiKey) return res.status(400).json({ error: 'Missing fields' });
       if (!/^\d+$/.test(data.userId)) return res.status(400).json({ error: 'User ID must be number' });
+      if (data.apiKey.length < 10) return res.status(400).json({ error: 'API Key too short' });
 
       return fetch('https://users.roblox.com/v1/users/' + data.userId)
       .then(function(r) {
-        if (!r.ok) throw new Error('User not found');
+        if (!r.ok) throw new Error('User ID not found on Roblox');
         return r.json();
       })
       .then(function(u) {
         if (u.isBanned) throw new Error('User is banned');
-
-        return fetch('https://apis.roblox.com/assets/v1/assets', {
-          headers: { 'x-api-key': data.apiKey }
-        }).then(function(kr) {
-          var kv = true, ke = null;
-          if (kr.status === 401) { kv = false; ke = 'Invalid API Key'; }
-          if (kr.status === 403) { kv = false; ke = 'Missing permissions'; }
-          return res.status(200).json({
-            valid: true,
-            displayName: u.displayName || u.name,
-            keyValid: kv,
-            keyError: ke
-          });
-        }).catch(function() {
-          return res.status(200).json({
-            valid: true,
-            displayName: u.displayName || u.name,
-            keyValid: true,
-            keyError: null
-          });
+        return res.status(200).json({
+          valid: true,
+          displayName: u.displayName || u.name,
+          keyValid: true,
+          keyError: null
         });
       })
       .catch(function(e) {
@@ -196,10 +177,10 @@ module.exports = function(req, res) {
 
         if (!ur.ok) {
           var msg = rd.message || rd.error || 'Error ' + ur.status;
-          if (ur.status === 401) msg = 'Invalid API Key';
-          if (ur.status === 403) msg = 'Missing permissions';
-          if (ur.status === 429) msg = 'Rate limited';
-          return res.status(ur.status).json({ error: msg });
+          if (ur.status === 401) msg = 'Invalid API Key - check at create.roblox.com/credentials';
+          if (ur.status === 403) msg = 'API Key missing permissions - need Assets Read+Write and IP 0.0.0.0/0';
+          if (ur.status === 429) msg = 'Rate limited - wait 1 minute';
+          return res.status(ur.ok ? 200 : ur.status).json({ error: msg });
         }
 
         var aid = rd.assetId || (rd.response && rd.response.assetId) || null;

@@ -1,0 +1,10 @@
+{
+  "name": "rbxm-to-asset-converter",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "form-data": "^4.0.0",
+    "node-fetch": "^2.7.0",
+    "multiparty": "^4.2.3"
+  }
+}

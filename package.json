@@ -1,10 +1,13 @@
 {
-  "name": "rbxm-to-asset-converter",
+  "name": "rbxm-to-toolbox",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
-    "form-data": "^4.0.0",
-    "node-fetch": "^2.7.0",
-    "multiparty": "^4.2.3"
+    "busboy": "1.6.0",
+    "form-data": "4.0.0",
+    "node-fetch": "2.7.0"
   }
 }

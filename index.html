@@ -1,241 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RBXM → Roblox Asset Converter</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBXM Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0612;color:#f1e8ff;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse at 80% 70%,rgba(236,72,153,.1),transparent);z-index:0;pointer-events:none}
+.box{max-width:600px;margin:20px auto;padding:24px;background:rgba(139,92,246,.08);backdrop-filter:blur(40px);border:1px solid rgba(139,92,246,.2);border-radius:20px;position:relative;z-index:1}
+.box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
+h1{font-size:22px;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#c4b5fd,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{text-align:center;font-size:13px;color:rgba(241,232,255,.5);margin-bottom:24px}
+label{display:block;font-size:13px;color:rgba(241,232,255,.6);margin-bottom:6px;margin-top:16px}
+input,select,textarea{width:100%;padding:12px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:12px;color:#f1e8ff;font-family:inherit;font-size:14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+input::placeholder{color:rgba(241,232,255,.25)}
+select{cursor:pointer}
+select option{background:#1a0a2e}
+textarea{resize:vertical;min-height:50px}
+.btn{width:100%;padding:14px;margin-top:16px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:12px;color:#f1e8ff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
+.btn:hover{border-color:#7c3aed;box-shadow:0 0 20px rgba(124,58,237,.2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.loading{pointer-events:none}
+.btn.loading span{display:none}
+.btn.loading::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;display:none}
+.msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:#34d399}
+.msg.err{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171}
+.drop{border:2px dashed rgba(139,92,246,.25);border-radius:16px;padding:30px;text-align:center;cursor:pointer;margin-top:16px;transition:all .3s}
+.drop:hover{border-color:#7c3aed;background:rgba(124,58,237,.05)}
+.drop i{font-size:32px;color:#a78bfa;display:block;margin-bottom:8px}
+.drop p{font-size:13px}
+.drop small{font-size:11px;color:rgba(241,232,255,.4)}
+.fileshow{margin-top:12px;padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;display:none;align-items:center;gap:10px;font-size:13px}
+.fileshow.show{display:flex}
+.fileshow .x{margin-left:auto;color:#f87171;cursor:pointer;font-size:16px}
+.result{margin-top:16px;padding:16px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:14px;display:none;text-align:center}
+.result.show{display:block}
+.result h3{font-size:18px;margin-bottom:12px}
+.result .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:12px;gap:8px;flex-wrap:wrap}
+.result .row:last-child{border:none}
+.result .row span{color:rgba(241,232,255,.5)}
+.result .row code{color:#c4b5fd;cursor:pointer;word-break:break-all}
+.result a{color:#a78bfa;text-decoration:none;font-size:13px}
+.help-btn{position:fixed;bottom:20px;right:20px;width:44px;height:44px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:50%;color:#a78bfa;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{max-width:500px;width:100%;max-height:75vh;overflow-y:auto;padding:24px;background:rgba(20,10,40,.95);border:1px solid rgba(139,92,246,.2);border-radius:16px}
+.modal h2{font-size:18px;margin-bottom:16px;color:#c4b5fd}
+.modal h3{font-size:14px;color:#a78bfa;margin:16px 0 8px}
+.modal ol,.modal ul{padding-left:18px;font-size:12px;color:rgba(241,232,255,.6);line-height:1.8}
+.modal code{background:rgba(139,92,246,.12);padding:1px 6px;border-radius:3px;font-size:11px;color:#c4b5fd}
+.modal a{color:#a78bfa}
+.modal .close{float:right;background:none;border:none;color:#f87171;font-size:18px;cursor:pointer}
+.step-locked{opacity:.4;pointer-events:none}
+.step-unlocked{opacity:1;pointer-events:auto}
+</style>
 </head>
 <body>
-  <!-- Stars -->
-  <div class="stars" id="stars"></div>
-  <div class="shooting-stars">
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-    <div class="shooting-star"></div>
-  </div>
 
-  <!-- Floating Orbs -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
+<div class="box" style="margin-top:30px">
+<h1>⚡ RBXM → Asset ID</h1>
+<p class="sub">Convert Roblox Studio files to Toolbox assets</p>
 
-  <!-- Help Modal -->
-  <div class="modal-overlay" id="helpModal">
-    <div class="modal glass-card">
-      <button class="modal-close" onclick="toggleHelp()"><i class="fas fa-times"></i></button>
-      <h2><i class="fas fa-question-circle"></i> Help Guide</h2>
-      <div class="help-content">
-        <div class="help-section">
-          <h3><i class="fas fa-key"></i> How to Get API Key</h3>
-          <ol>
-            <li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
-            <li>Click <strong>"Create API Key"</strong></li>
-            <li>Name it anything (e.g. "AssetUploader")</li>
-            <li>Under <strong>Access Permissions</strong>, add:
-              <ul>
-                <li><strong>Assets</strong> → check <strong>Read</strong> and <strong>Write</strong></li>
-              </ul>
-            </li>
-            <li>Under <strong>Accepted IP</strong>, add <code>0.0.0.0/0</code> (allows all IPs)</li>
-            <li>Click <strong>Save & Generate Key</strong></li>
-            <li>Copy the key and paste it here</li>
-          </ol>
-        </div>
-        <div class="help-section">
-          <h3><i class="fas fa-user"></i> How to Find User ID</h3>
-          <ol>
-            <li>Go to your Roblox profile page</li>
-            <li>Look at the URL: <code>roblox.com/users/<strong>123456</strong>/profile</code></li>
-            <li>The number is your User ID</li>
-          </ol>
-        </div>
-        <div class="help-section">
-          <h3><i class="fas fa-file"></i> How to Get RBXM File</h3>
-          <ol>
-            <li>Open <strong>Roblox Studio</strong></li>
-            <li>Right-click the model in Explorer</li>
-            <li>Select <strong>"Save to File"</strong></li>
-            <li>Choose <code>.rbxm</code> format</li>
-            <li>Upload that file here</li>
-          </ol>
-        </div>
-        <div class="help-section">
-          <h3><i class="fas fa-cog"></i> Asset Types</h3>
-          <ul>
-            <li><strong>Model</strong> — 3D models, tools, parts (.rbxm)</li>
-            <li><strong>Decal</strong> — Image textures (.png, .jpg)</li>
-            <li><strong>Audio</strong> — Sound files (.mp3, .ogg)</li>
-            <li><strong>Mesh</strong> — Mesh geometry (.fbx, .obj)</li>
-          </ul>
-        </div>
-        <div class="help-section">
-          <h3><i class="fas fa-exclamation-triangle"></i> Common Errors</h3>
-          <ul>
-            <li><strong>401/403</strong> — API Key invalid or missing permissions</li>
-            <li><strong>400</strong> — File format wrong or too large</li>
-            <li><strong>429</strong> — Rate limited, wait and retry</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+<label><i class="fas fa-user"></i> User ID</label>
+<input type="text" id="uid" placeholder="e.g. 3493541426" inputmode="numeric">
 
-  <!-- Main App -->
-  <div class="container">
-    <header class="glass-card header" id="header">
-      <div class="logo">
-        <div class="logo-icon">
-          <i class="fas fa-cube"></i>
-        </div>
-        <div>
-          <h1>RBXM → Asset ID</h1>
-          <p class="subtitle">Convert Roblox files to Toolbox assets</p>
-        </div>
-      </div>
-      <button class="help-btn glass-btn" onclick="toggleHelp()" title="Help">
-        <i class="fas fa-question"></i>
-      </button>
-    </header>
+<label><i class="fas fa-key"></i> API Key</label>
+<input type="password" id="key" placeholder="Paste your Open Cloud API Key">
 
-    <!-- Step 1: Auth -->
-    <div class="step glass-card" id="step1">
-      <div class="step-header">
-        <div class="step-number">1</div>
-        <h2>Authentication</h2>
-        <div class="step-status" id="step1Status"></div>
-      </div>
-      <div class="step-body">
-        <div class="input-group">
-          <label><i class="fas fa-user"></i> User ID</label>
-          <div class="input-wrap">
-            <input type="text" id="userId" placeholder="e.g. 123456789" autocomplete="off" />
-          </div>
-        </div>
-        <div class="input-group">
-          <label><i class="fas fa-key"></i> API Key</label>
-          <div class="input-wrap">
-            <input type="password" id="apiKey" placeholder="Paste your Open Cloud API Key" autocomplete="off" />
-            <button class="toggle-eye" onclick="togglePassword()">
-              <i class="fas fa-eye" id="eyeIcon"></i>
-            </button>
-          </div>
-        </div>
-        <button class="action-btn glass-btn" id="verifyBtn" onclick="verifyCredentials()">
-          <i class="fas fa-shield-alt"></i>
-          <span>Verify Credentials</span>
-        </button>
-        <div class="verify-result" id="verifyResult"></div>
-      </div>
-    </div>
+<button class="btn" id="vbtn" onclick="doVerify()"><i class="fas fa-shield-alt"></i><span>Verify</span></button>
+<div class="msg" id="vmsg"></div>
+</div>
 
-    <!-- Step 2: Upload -->
-    <div class="step glass-card locked" id="step2">
-      <div class="step-header">
-        <div class="step-number">2</div>
-        <h2>Upload & Configure</h2>
-        <div class="lock-icon"><i class="fas fa-lock"></i></div>
-      </div>
-      <div class="step-body">
-        <div class="drop-zone" id="dropZone">
-          <div class="drop-icon">
-            <i class="fas fa-cloud-upload-alt"></i>
-          </div>
-          <p>Drag & drop your <strong>.rbxm</strong> file here</p>
-          <span>or click to browse</span>
-          <input type="file" id="fileInput" accept=".rbxm,.rbxmx,.fbx,.obj,.png,.jpg,.jpeg,.mp3,.ogg" hidden />
-        </div>
-        <div class="file-info" id="fileInfo" style="display:none">
-          <div class="file-card glass-card">
-            <i class="fas fa-file-code"></i>
-            <div>
-              <strong id="fileName"></strong>
-              <span id="fileSize"></span>
-            </div>
-            <button class="remove-file" onclick="removeFile()"><i class="fas fa-times"></i></button>
-          </div>
-        </div>
-        <div class="config-grid">
-          <div class="input-group">
-            <label><i class="fas fa-tag"></i> Asset Name</label>
-            <input type="text" id="assetName" placeholder="My Cool Model" maxlength="50" />
-          </div>
-          <div class="input-group">
-            <label><i class="fas fa-list"></i> Asset Type</label>
-            <select id="assetType">
-              <option value="Model">Model (.rbxm)</option>
-              <option value="Decal">Decal (.png/.jpg)</option>
-              <option value="Audio">Audio (.mp3/.ogg)</option>
-              <option value="Mesh">Mesh (.fbx/.obj)</option>
-            </select>
-          </div>
-        </div>
-        <div class="input-group">
-          <label><i class="fas fa-align-left"></i> Description</label>
-          <textarea id="assetDesc" placeholder="Optional description..." maxlength="1000" rows="2"></textarea>
-        </div>
-        <button class="action-btn glass-btn upload-btn" id="uploadBtn" onclick="uploadAsset()">
-          <i class="fas fa-rocket"></i>
-          <span>Upload to Roblox</span>
-        </button>
-      </div>
-    </div>
+<div class="box step-locked" id="step2">
+<h2 style="font-size:16px;margin-bottom:12px">📁 Upload File</h2>
 
-    <!-- Step 3: Result -->
-    <div class="step glass-card locked" id="step3">
-      <div class="step-header">
-        <div class="step-number">3</div>
-        <h2>Result</h2>
-        <div class="lock-icon"><i class="fas fa-lock"></i></div>
-      </div>
-      <div class="step-body">
-        <div class="result-content" id="resultContent">
-          <div class="result-card glass-card">
-            <div class="result-icon success-icon">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <h3 id="resultTitle">Asset Uploaded!</h3>
-            <div class="result-details">
-              <div class="result-row">
-                <span>Asset ID</span>
-                <div class="copyable" onclick="copyText(this)">
-                  <code id="resultAssetId">—</code>
-                  <i class="fas fa-copy"></i>
-                </div>
-              </div>
-              <div class="result-row">
-                <span>Insert URL</span>
-                <div class="copyable" onclick="copyText(this)">
-                  <code id="resultInsertUrl">—</code>
-                  <i class="fas fa-copy"></i>
-                </div>
-              </div>
-              <div class="result-row">
-                <span>Toolbox Link</span>
-                <a id="resultToolboxLink" href="#" target="_blank" class="toolbox-link">
-                  <i class="fas fa-external-link-alt"></i> Open in Toolbox
-                </a>
-              </div>
-            </div>
-            <button class="action-btn glass-btn" onclick="resetAll()">
-              <i class="fas fa-redo"></i>
-              <span>Convert Another</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="drop" id="dz" onclick="document.getElementById('finp').click()">
+<i class="fas fa-cloud-upload-alt"></i>
+<p>Tap to select file</p>
+<small>.rbxm .png .jpg .mp3 .fbx</small>
+</div>
+<input type="file" id="finp" accept=".rbxm,.rbxmx,.fbx,.obj,.png,.jpg,.jpeg,.mp3,.ogg" hidden>
 
-    <footer class="glass-card footer">
-      <p>Made for Roblox Developers · Uses Open Cloud API</p>
-    </footer>
-  </div>
+<div class="fileshow" id="fshow">
+<i class="fas fa-file-code" style="color:#a78bfa"></i>
+<span id="fname">—</span>
+<span id="fsize" style="color:rgba(241,232,255,.4)">—</span>
+<i class="fas fa-times x" onclick="clearFile()"></i>
+</div>
 
-  <!-- Toast -->
-  <div class="toast-container" id="toastContainer"></div>
+<label>Asset Name</label>
+<input type="text" id="aname" placeholder="My Model" maxlength="50">
 
-  <script src="app.js"></script>
+<label>Asset Type</label>
+<select id="atype">
+<option value="Model">Model (.rbxm)</option>
+<option value="Decal">Decal (.png/.jpg)</option>
+<option value="Audio">Audio (.mp3/.ogg)</option>
+<option value="Mesh">Mesh (.fbx/.obj)</option>
+</select>
+
+<label>Description (optional)</label>
+<textarea id="adesc" placeholder="Optional..." maxlength="1000" rows="2"></textarea>
+
+<button class="btn" id="ubtn" onclick="doUpload()"><i class="fas fa-rocket"></i><span>Upload to Roblox</span></button>
+<div class="msg" id="umsg"></div>
+
+<div class="result" id="res">
+<h3 id="rtitle">✅ Uploaded!</h3>
+<div class="row"><span>Asset ID</span><code id="raid" onclick="cp(this)">—</code></div>
+<div class="row"><span>Insert URL</span><code id="rurl" onclick="cp(this)">—</code></div>
+<div class="row" id="rlink"><span>Toolbox</span><a id="rtbox" href="#" target="_blank">Open ↗</a></div>
+<br>
+<button class="btn" onclick="resetAll()"><i class="fas fa-redo"></i><span>Convert Another</span></button>
+</div>
+</div>
+
+<button class="help-btn" onclick="document.getElementById('hmod').classList.add('show')"><i class="fas fa-question"></i></button>
+
+<div class="modal-bg" id="hmod" onclick="if(event.target===this)this.classList.remove('show')">
+<div class="modal">
+<button class="close" onclick="document.getElementById('hmod').classList.remove('show')"><i class="fas fa-times"></i></button>
+<h2>📖 Help Guide</h2>
+<h3>🔑 Get API Key</h3>
+<ol>
+<li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
+<li>Click "Create API Key"</li>
+<li>Name: anything</li>
+<li>Permissions → Assets → Read ✅ Write ✅</li>
+<li>IP: type <code>0.0.0.0/0</code></li>
+<li>Save & copy key</li>
+</ol>
+<h3>👤 Find User ID</h3>
+<ol>
+<li>Go to roblox.com profile</li>
+<li>URL: roblox.com/users/<code>123456</code>/profile</li>
+<li>The number = User ID</li>
+</ol>
+<h3>📁 Get RBXM</h3>
+<ol>
+<li>Roblox Studio → right-click model</li>
+<li>"Save to File" → .rbxm</li>
+</ol>
+<h3>⚠️ Errors</h3>
+<ul>
+<li><strong>401</strong> = Wrong API Key</li>
+<li><strong>403</strong> = Missing permissions</li>
+<li><strong>429</strong> = Rate limited, wait</li>
+</ul>
+</div>
+</div>
+
+<script>
+var ok=false,file=null;
+
+function doVerify(){
+  var uid=document.getElementById('uid').value.trim();
+  var key=document.getElementById('key').value.trim();
+  var btn=document.getElementById('vbtn');
+  var msg=document.getElementById('vmsg');
+
+  if(!uid||!/^\d+$/.test(uid)){msg.className='msg err';msg.textContent='Enter valid User ID';return;}
+  if(!key||key.length<10){msg.className='msg err';msg.textContent='Enter valid API Key';return;}
+
+  btn.classList.add('loading');btn.disabled=true;
+  msg.className='msg';msg.style.display='none';
+
+  var x=new XMLHttpRequest();
+  x.open('GET','/api/verify?uid='+uid);
+  x.timeout=10000;
+
+  x.ontimeout=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    msg.className='msg err';msg.textContent='Timeout - try again';
+  };
+
+  x.onload=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    try{
+      var d=JSON.parse(x.responseText);
+      if(d.valid){
+        ok=true;
+        msg.className='msg ok';msg.textContent='✅ Welcome, '+d.displayName+'!';
+        document.getElementById('step2').className='box step-unlocked';
+      }else{
+        msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');
+      }
+    }catch(e){
+      msg.className='msg err';msg.textContent='Bad response';
+    }
+  };
+
+  x.onerror=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    msg.className='msg err';msg.textContent='Network error';
+  };
+
+  x.send();
+}
+
+document.getElementById('finp').addEventListener('change',function(e){
+  if(e.target.files.length)pickFile(e.target.files[0]);
+});
+
+function pickFile(f){
+  var exts=['.rbxm','.rbxmx','.fbx','.obj','.png','.jpg','.jpeg','.mp3','.ogg'];
+  var ext='.'+f.name.split('.').pop().toLowerCase();
+  if(exts.indexOf(ext)===-1){alert('Bad format');return;}
+  if(f.size>50*1024*1024){alert('Too large');return;}
+  file=f;
+  document.getElementById('dz').style.display='none';
+  var fs=document.getElementById('fshow');fs.classList.add('show');
+  document.getElementById('fname').textContent=f.name;
+  document.getElementById('fsize').textContent=(f.size/1024).toFixed(1)+' KB';
+  if(!document.getElementById('aname').value)document.getElementById('aname').value=f.name.replace(/\.[^.]+$/,'');
+  var tm={'.rbxm':'Model','.rbxmx':'Model','.png':'Decal','.jpg':'Decal','.jpeg':'Decal','.mp3':'Audio','.ogg':'Audio','.fbx':'Mesh','.obj':'Mesh'};
+  if(tm[ext])document.getElementById('atype').value=tm[ext];
+}
+
+function clearFile(){
+  file=null;document.getElementById('finp').value='';
+  document.getElementById('dz').style.display='';
+  document.getElementById('fshow').classList.remove('show');
+}
+
+function doUpload(){
+  if(!ok){alert('Verify first');return;}
+  if(!file){alert('Select file');return;}
+
+  var btn=document.getElementById('ubtn');
+  var msg=document.getElementById('umsg');
+
+  btn.classList.add('loading');btn.disabled=true;
+  msg.className='msg';msg.style.display='none';
+
+  var fd=new FormData();
+  fd.append('file',file);
+  fd.append('userId',document.getElementById('uid').value.trim());
+  fd.append('apiKey',document.getElementById('key').value.trim());
+  fd.append('assetType',document.getElementById('atype').value);
+  fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
+  fd.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
+
+  var x=new XMLHttpRequest();
+  x.open('POST','/api/upload');
+  x.timeout=60000;
+
+  x.ontimeout=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    msg.className='msg err';msg.textContent='Timeout';
+  };
+
+  x.onload=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    try{
+      var d=JSON.parse(x.responseText);
+      if(d.success){
+        var r=document.getElementById('res');r.classList.add('show');
+        document.getElementById('rtitle').textContent='✅ Uploaded!';
+        if(d.assetId){
+          document.getElementById('raid').textContent=d.assetId;
+          document.getElementById('rurl').textContent='rbxassetid://'+d.assetId;
+          document.getElementById('rtbox').href='https://www.roblox.com/library/'+d.assetId;
+          document.getElementById('rlink').style.display='';
+        }else{
+          document.getElementById('raid').textContent='Processing...';
+          document.getElementById('rurl').textContent='Check inventory';
+          document.getElementById('rlink').style.display='none';
+        }
+      }else{
+        msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');
+      }
+    }catch(e){
+      msg.className='msg err';msg.textContent='Bad response';
+    }
+  };
+
+  x.onerror=function(){
+    btn.classList.remove('loading');btn.disabled=false;
+    msg.className='msg err';msg.textContent='Network error';
+  };
+
+  x.send(fd);
+}
+
+function cp(el){
+  var t=el.textContent;if(!t||t==='—')return;
+  navigator.clipboard.writeText(t);el.style.color='#34d399';
+  setTimeout(function(){el.style.color='';},1000);
+}
+
+function resetAll(){
+  clearFile();document.getElementById('aname').value='';
+  document.getElementById('adesc').value='';document.getElementById('res').classList.remove('show');
+  document.getElementById('umsg').className='msg';
+}
+</script>
 </body>
-        </html>
+</html>

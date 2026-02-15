@@ -1,12 +1,5 @@
 {
-  "name": "rbxm-to-toolbox",
-  "version": "1.0.0",
-  "private": true,
-  "engines": {
-    "node": "18.x"
-  },
   "dependencies": {
-    "busboy": "1.6.0",
     "form-data": "4.0.0",
     "node-fetch": "2.7.0"
   }

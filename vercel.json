@@ -1,10 +1,14 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ],
   "functions": {
     "api/upload.js": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/upload",
+      "methods": ["POST", "OPTIONS"],
+      "dest": "/api/upload.js"
+    }
+  ]
 }

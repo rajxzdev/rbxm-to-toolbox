@@ -1,44 +1,6 @@
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 
-// Parse multipart tanpa library external
-function parseMultipart(body, boundary) {
-  const parts = [];
-  const boundaryBuffer = Buffer.from('--' + boundary);
-  const endBuffer = Buffer.from('--' + boundary + '--');
-
-  let start = body.indexOf(boundaryBuffer) + boundaryBuffer.length + 2;
-
-  while (start < body.length) {
-    const end = body.indexOf(boundaryBuffer, start);
-    if (end === -1) break;
-
-    const part = body.slice(start, end - 2);
-    const headerEnd = part.indexOf('\r\n\r\n');
-    if (headerEnd === -1) { start = end + boundaryBuffer.length + 2; continue; }
-
-    const headerStr = part.slice(0, headerEnd).toString();
-    const content = part.slice(headerEnd + 4);
-
-    const nameMatch = headerStr.match(/name="([^"]+)"/);
-    const fileMatch = headerStr.match(/filename="([^"]+)"/);
-    const typeMatch = headerStr.match(/Content-Type:\s*(.+)/i);
-
-    if (nameMatch) {
-      parts.push({
-        name: nameMatch[1],
-        filename: fileMatch ? fileMatch[1] : null,
-        contentType: typeMatch ? typeMatch[1].trim() : null,
-        data: content
-      });
-    }
-
-    start = end + boundaryBuffer.length + 2;
-  }
-
-  return parts;
-}
-
 function getBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -48,44 +10,71 @@ function getBody(req) {
   });
 }
 
-async function verifyUser(userId) {
-  try {
-    const res = await fetch(`https://users.roblox.com/v1/users/${userId}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.isBanned) return { valid: false, error: 'User is banned' };
-      return { valid: true, displayName: data.displayName || data.name };
+function parseMultipart(body, boundary) {
+  const parts = [];
+  const b = '--' + boundary;
+  const str = body.toString('latin1');
+  const sections = str.split(b).slice(1, -1);
+
+  for (const section of sections) {
+    const headerEnd = section.indexOf('\r\n\r\n');
+    if (headerEnd === -1) continue;
+
+    const header = section.slice(0, headerEnd);
+    const content = section.slice(headerEnd + 4).replace(/\r\n$/, '');
+
+    const nameMatch = header.match(/name="([^"]+)"/);
+    const fileMatch = header.match(/filename="([^"]+)"/);
+
+    if (!nameMatch) continue;
+
+    if (fileMatch) {
+      const start = body.indexOf(Buffer.from(content.slice(0, 50), 'latin1'), 
+        body.indexOf(Buffer.from(header.slice(0, 50), 'latin1')));
+      parts.push({
+        name: nameMatch[1],
+        filename: fileMatch[1],
+        data: body.slice(start, start + content.length)
+      });
+    } else {
+      parts.push({
+        name: nameMatch[1],
+        filename: null,
+        data: content
+      });
     }
-    return { valid: false, error: 'User ID not found' };
-  } catch (e) {
-    return { valid: false, error: 'Cannot reach Roblox: ' + e.message };
   }
+  return parts;
 }
 
-function getRobloxMimeType(filename) {
+function getMime(filename) {
   const ext = (filename || '').split('.').pop().toLowerCase();
-  const map = {
-    'rbxm': 'application/xml',
-    'rbxmx': 'application/xml',
-    'png': 'image/png',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'mp3': 'audio/mpeg',
-    'ogg': 'audio/ogg',
-    'fbx': 'model/fbx',
-    'obj': 'model/obj'
-  };
-  return map[ext] || 'application/octet-stream';
+  return {
+    rbxm: 'application/xml',
+    rbxmx: 'application/xml',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    mp3: 'audio/mpeg',
+    ogg: 'audio/ogg',
+    fbx: 'model/fbx',
+    obj: 'model/obj'
+  }[ext] || 'application/octet-stream';
 }
 
-function getRobloxAssetType(type, filename) {
+function getAssetType(filename) {
   const ext = (filename || '').split('.').pop().toLowerCase();
-  if (ext === 'rbxm' || ext === 'rbxmx') return 'Model';
-  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') return 'Decal';
-  if (ext === 'mp3' || ext === 'ogg') return 'Audio';
-  if (ext === 'fbx' || ext === 'obj') return 'MeshPart';
-  const typeMap = { 'Model': 'Model', 'Decal': 'Decal', 'Audio': 'Audio', 'Mesh': 'MeshPart' };
-  return typeMap[type] || 'Model';
+  return {
+    rbxm: 'Model',
+    rbxmx: 'Model',
+    png: 'Decal',
+    jpg: 'Decal',
+    jpeg: 'Decal',
+    mp3: 'Audio',
+    ogg: 'Audio',
+    fbx: 'MeshPart',
+    obj: 'MeshPart'
+  }[ext] || 'Model';
 }
 
 module.exports = async function handler(req, res) {
@@ -96,177 +85,144 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  const action = req.headers['x-action'];
-
-  // ====== VERIFY USER ======
-  if (action === 'verify-user') {
+  // ====== VERIFY ======
+  if (req.headers['x-action'] === 'verify-user') {
     try {
       const raw = await getBody(req);
       const { userId, apiKey } = JSON.parse(raw.toString());
 
-      if (!userId || !apiKey) return res.status(400).json({ error: 'Missing userId or apiKey' });
-      if (!/^\d+$/.test(userId)) return res.status(400).json({ error: 'User ID must be a number' });
+      if (!userId || !apiKey) return res.status(400).json({ error: 'Missing fields' });
+      if (!/^\d+$/.test(userId)) return res.status(400).json({ error: 'User ID must be number' });
 
-      const userCheck = await verifyUser(userId);
-      if (!userCheck.valid) return res.status(400).json({ error: userCheck.error });
+      const ur = await fetch('https://users.roblox.com/v1/users/' + userId);
+      if (!ur.ok) return res.status(400).json({ error: 'User ID not found' });
+      const ud = await ur.json();
+      if (ud.isBanned) return res.status(400).json({ error: 'User is banned' });
 
-      // Test API key
       let keyValid = true, keyError = null;
       try {
         const kr = await fetch('https://apis.roblox.com/assets/v1/assets', {
           headers: { 'x-api-key': apiKey }
         });
-        if (kr.status === 401) { keyValid = false; keyError = 'API Key invalid (401)'; }
-        if (kr.status === 403) { keyValid = false; keyError = 'API Key lacks permissions (403)'; }
-      } catch (e) { /* ignore */ }
+        if (kr.status === 401) { keyValid = false; keyError = 'Invalid API Key'; }
+        if (kr.status === 403) { keyValid = false; keyError = 'Missing permissions'; }
+      } catch (e) {}
 
       return res.status(200).json({
         valid: true,
-        displayName: userCheck.displayName,
-        keyValid,
-        keyError
+        displayName: ud.displayName || ud.name,
+        keyValid: keyValid,
+        keyError: keyError
       });
     } catch (e) {
-      return res.status(400).json({ error: 'Invalid request: ' + e.message });
+      return res.status(400).json({ error: e.message });
     }
   }
 
-  // ====== UPLOAD ASSET ======
+  // ====== UPLOAD ======
   try {
-    const contentType = req.headers['content-type'] || '';
-    const boundaryMatch = contentType.match(/boundary=(.+)/);
-
-    if (!boundaryMatch) {
-      return res.status(400).json({ error: 'Invalid request format' });
-    }
+    const ct = req.headers['content-type'] || '';
+    const bm = ct.match(/boundary=(.+)/);
+    if (!bm) return res.status(400).json({ error: 'Invalid request' });
 
     const body = await getBody(req);
-    const boundary = boundaryMatch[1].trim();
-    const parts = parseMultipart(body, boundary);
+    const parts = parseMultipart(body, bm[1].trim());
 
-    // Extract fields
     const fields = {};
     let file = null;
 
-    for (const part of parts) {
-      if (part.filename) {
-        file = {
-          buffer: part.data,
-          filename: part.filename,
-          mimeType: part.contentType
-        };
+    for (const p of parts) {
+      if (p.filename) {
+        file = { buffer: p.data, filename: p.filename };
       } else {
-        fields[part.name] = part.data.toString();
+        fields[p.name] = typeof p.data === 'string' ? p.data : p.data.toString();
       }
     }
 
-    const userId = fields.userId;
-    const apiKey = fields.apiKey;
-    const assetType = fields.assetType || 'Model';
-    const displayName = (fields.displayName || 'Uploaded Asset').substring(0, 50);
-    const description = (fields.description || 'Uploaded via RBXM Converter').substring(0, 1000);
+    if (!fields.userId || !fields.apiKey) return res.status(400).json({ error: 'Missing credentials' });
+    if (!file) return res.status(400).json({ error: 'No file' });
 
-    if (!userId || !apiKey) return res.status(400).json({ error: 'Missing userId or apiKey' });
-    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+    const rType = getAssetType(file.filename);
+    const mime = getMime(file.filename);
+    const name = (fields.displayName || 'Asset').substring(0, 50);
+    const desc = (fields.description || 'Uploaded via converter').substring(0, 1000);
 
-    const robloxType = getRobloxAssetType(assetType, file.filename);
-    const mimeType = getRobloxMimeType(file.filename);
-
-    console.log('Upload:', { userId, robloxType, mimeType, displayName, fileSize: file.buffer.length, fileName: file.filename });
-
-    const requestBody = {
-      assetType: robloxType,
-      displayName: displayName,
-      description: description,
-      creationContext: {
-        creator: {
-          userId: userId
-        }
-      }
+    const reqBody = {
+      assetType: rType,
+      displayName: name,
+      description: desc,
+      creationContext: { creator: { userId: fields.userId } }
     };
 
-    const formData = new FormData();
-    formData.append('request', JSON.stringify(requestBody), {
+    const fd = new FormData();
+    fd.append('request', JSON.stringify(reqBody), {
       contentType: 'application/json',
       filename: 'request.json'
     });
-    formData.append('fileContent', file.buffer, {
-      filename: file.filename || 'asset.rbxm',
-      contentType: mimeType
+    fd.append('fileContent', file.buffer, {
+      filename: file.filename,
+      contentType: mime
     });
 
-    const uploadRes = await fetch('https://apis.roblox.com/assets/v1/assets', {
+    const ur = await fetch('https://apis.roblox.com/assets/v1/assets', {
       method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        ...formData.getHeaders()
-      },
-      body: formData
+      headers: { 'x-api-key': fields.apiKey, ...fd.getHeaders() },
+      body: fd
     });
 
-    const responseText = await uploadRes.text();
-    console.log('Roblox:', uploadRes.status, responseText);
+    const rt = await ur.text();
+    let rd;
+    try { rd = JSON.parse(rt); } catch { rd = { raw: rt }; }
 
-    let responseData;
-    try { responseData = JSON.parse(responseText); } catch { responseData = { rawText: responseText }; }
-
-    if (!uploadRes.ok) {
-      let errorMsg = responseData.message || responseData.error || 'Roblox API error ' + uploadRes.status;
-      if (uploadRes.status === 401) errorMsg = 'Invalid API Key';
-      else if (uploadRes.status === 403) errorMsg = 'API Key lacks permissions';
-      else if (uploadRes.status === 429) errorMsg = 'Rate limited — wait a minute';
-      return res.status(uploadRes.status).json({ error: errorMsg, details: responseData });
+    if (!ur.ok) {
+      let msg = rd.message || rd.error || 'Error ' + ur.status;
+      if (ur.status === 401) msg = 'Invalid API Key';
+      if (ur.status === 403) msg = 'Missing permissions - add Assets Read+Write and IP 0.0.0.0/0';
+      if (ur.status === 429) msg = 'Rate limited - wait 1 min';
+      return res.status(ur.status).json({ error: msg });
     }
 
-    // Get asset ID
-    let assetId = responseData.assetId || responseData.response?.assetId || null;
+    let assetId = rd.assetId || (rd.response && rd.response.assetId) || null;
 
-    // Poll operation
-    if (!assetId && responseData.path) {
-      let attempts = 0;
-      while (attempts < 15) {
+    if (!assetId && rd.path) {
+      for (let i = 0; i < 10; i++) {
         await new Promise(r => setTimeout(r, 2000));
-        attempts++;
         try {
-          const pr = await fetch(`https://apis.roblox.com/assets/v1/${responseData.path}`, {
-            headers: { 'x-api-key': apiKey }
+          const pr = await fetch('https://apis.roblox.com/assets/v1/' + rd.path, {
+            headers: { 'x-api-key': fields.apiKey }
           });
           if (pr.ok) {
             const pd = await pr.json();
             if (pd.done) {
-              assetId = pd.response?.assetId;
-              responseData = pd;
+              assetId = pd.response && pd.response.assetId;
+              rd = pd;
               break;
             }
           }
-        } catch (e) { console.log('Poll err:', e.message); }
+        } catch (e) {}
       }
+    }
 
-      if (!assetId) {
-        const paths = [responseData.response?.path, responseData.path].filter(Boolean);
-        for (const p of paths) {
-          const m = p.match(/assets\/(\d+)/);
-          if (m) { assetId = m[1]; break; }
-        }
+    if (!assetId) {
+      var paths = [rd.response && rd.response.path, rd.path].filter(Boolean);
+      for (var p of paths) {
+        var m = p.match(/assets\/(\d+)/);
+        if (m) { assetId = m[1]; break; }
       }
     }
 
     return res.status(200).json({
       success: true,
-      assetId,
-      toolboxUrl: assetId ? `https://www.roblox.com/library/${assetId}` : null,
-      insertUrl: assetId ? `rbxassetid://${assetId}` : null,
-      raw: responseData
+      assetId: assetId,
+      toolboxUrl: assetId ? 'https://www.roblox.com/library/' + assetId : null,
+      insertUrl: assetId ? 'rbxassetid://' + assetId : null
     });
 
   } catch (err) {
-    console.error('Error:', err);
-    return res.status(500).json({ error: 'Server error: ' + err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
 module.exports.config = {
-  api: {
-    bodyParser: false
-  }
+  api: { bodyParser: false }
 };

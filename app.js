@@ -1,21 +1,17 @@
 (function(){
   var c=document.getElementById('stars');
   for(var i=0;i<120;i++){
-    var s=document.createElement('div');
-    s.className='star';
-    s.style.left=Math.random()*100+'%';
-    s.style.top=Math.random()*100+'%';
+    var s=document.createElement('div');s.className='star';
+    s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';
     s.style.setProperty('--d',(2+Math.random()*4)+'s');
     s.style.setProperty('--o',(0.3+Math.random()*0.7));
     s.style.animationDelay=Math.random()*5+'s';
-    var sz=1+Math.random()*2;
-    s.style.width=s.style.height=sz+'px';
+    var sz=1+Math.random()*2;s.style.width=s.style.height=sz+'px';
     c.appendChild(s);
   }
 })();
 
-var verified=false;
-var selectedFile=null;
+var verified=false,selectedFile=null;
 
 function toggleHelp(){document.getElementById('helpModal').classList.toggle('show');}
 document.getElementById('helpModal').addEventListener('click',function(e){if(e.target===this)toggleHelp();});
@@ -27,13 +23,10 @@ function togglePassword(){
 }
 
 function showToast(m,t){
-  t=t||'info';
-  var c=document.getElementById('toastContainer'),d=document.createElement('div');
+  t=t||'info';var c=document.getElementById('toastContainer'),d=document.createElement('div');
   d.className='toast '+t;
-  var ic={success:'check-circle',error:'exclamation-circle',info:'info-circle'};
-  d.innerHTML='<i class="fas fa-'+(ic[t]||'info-circle')+'"></i><span>'+m+'</span>';
-  c.appendChild(d);
-  setTimeout(function(){d.classList.add('out');setTimeout(function(){d.remove();},300);},3500);
+  d.innerHTML='<i class="fas fa-'+({success:'check-circle',error:'exclamation-circle',info:'info-circle'}[t]||'info-circle')+'"></i><span>'+m+'</span>';
+  c.appendChild(d);setTimeout(function(){d.classList.add('out');setTimeout(function(){d.remove();},300);},3500);
 }
 
 function verifyCredentials(){
@@ -48,30 +41,26 @@ function verifyCredentials(){
 
   btn.classList.add('loading');btn.disabled=true;
   r.className='verify-result';r.style.display='none';
-
   showToast('Verifying...','info');
 
   var x=new XMLHttpRequest();
   x.timeout=15000;
-  x.open('POST','/api/upload');
-  x.setRequestHeader('Content-Type','application/json');
-  x.setRequestHeader('x-action','verify-user');
+  x.open('GET','/api/verify?uid='+encodeURIComponent(uid)+'&key='+encodeURIComponent(key));
 
   x.ontimeout=function(){
     btn.classList.remove('loading');btn.disabled=false;
     r.className='verify-result error show';
-    r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Timeout - server took too long</div>';
-    showToast('Timeout!','error');
+    r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Timeout</div>';
+    showToast('Timeout','error');
   };
 
   x.onreadystatechange=function(){
     if(x.readyState!==4)return;
-
     btn.classList.remove('loading');btn.disabled=false;
 
     if(x.status===0){
       r.className='verify-result error show';
-      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Cannot connect to server</div>';
+      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Cannot connect</div>';
       showToast('Connection failed','error');
       return;
     }
@@ -79,15 +68,14 @@ function verifyCredentials(){
     var d;
     try{d=JSON.parse(x.responseText);}catch(e){
       r.className='verify-result error show';
-      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Bad response: '+x.responseText.substring(0,100)+'</div>';
-      showToast('Server error','error');
+      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Bad response</div>';
       return;
     }
 
     if(x.status>=200&&x.status<300&&d.valid){
       verified=true;
-      var h='<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, '+d.displayName+'</div>';
-      r.className='verify-result success show';r.innerHTML=h;
+      r.className='verify-result success show';
+      r.innerHTML='<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, '+d.displayName+'</div>';
       document.getElementById('step1Status').innerHTML='<i class="fas fa-check-circle" style="color:var(--success)"></i>';
       var s2=document.getElementById('step2');s2.classList.remove('locked');s2.classList.add('unlocked');
       var lb=document.getElementById('lock2');if(lb)lb.style.display='none';
@@ -99,7 +87,7 @@ function verifyCredentials(){
     }
   };
 
-  x.send(JSON.stringify({userId:uid,apiKey:key}));
+  x.send();
 }
 
 var dz=document.getElementById('dropZone'),fi=document.getElementById('fileInput');
@@ -125,7 +113,6 @@ function handleFile(f){
 }
 
 function removeFile(){selectedFile=null;fi.value='';dz.style.display='';document.getElementById('fileInfo').classList.remove('show');}
-
 function fmtSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 
 function uploadAsset(){
@@ -162,13 +149,12 @@ function uploadAsset(){
 
   x.ontimeout=function(){
     btn.classList.remove('loading');btn.disabled=false;prog.classList.remove('show');
-    showToast('Upload timeout','error');
+    showToast('Timeout','error');
   };
 
   x.onreadystatechange=function(){
     if(x.readyState!==4)return;
-    bar.style.width='100%';
-    btn.classList.remove('loading');btn.disabled=false;
+    bar.style.width='100%';btn.classList.remove('loading');btn.disabled=false;
 
     if(x.status===0){showToast('Connection failed','error');prog.classList.remove('show');return;}
 
@@ -217,13 +203,10 @@ function copyText(el){
 }
 
 function resetUpload(){
-  removeFile();
-  document.getElementById('assetName').value='';
-  document.getElementById('assetDesc').value='';
-  document.getElementById('assetType').value='Model';
+  removeFile();document.getElementById('assetName').value='';
+  document.getElementById('assetDesc').value='';document.getElementById('assetType').value='Model';
   var s3=document.getElementById('step3');s3.classList.add('locked');s3.classList.remove('unlocked');
-  document.getElementById('resultAssetId').textContent='—';
-  document.getElementById('resultInsertUrl').textContent='—';
+  document.getElementById('resultAssetId').textContent='—';document.getElementById('resultInsertUrl').textContent='—';
   document.getElementById('toolboxRow').style.display='';
   document.getElementById('resultIcon').innerHTML='<i class="fas fa-check-circle"></i>';
   document.getElementById('resultIcon').className='result-icon success';

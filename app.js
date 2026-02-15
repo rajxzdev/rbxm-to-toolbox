@@ -19,7 +19,6 @@ var selectedFile=null;
 
 function toggleHelp(){document.getElementById('helpModal').classList.toggle('show');}
 document.getElementById('helpModal').addEventListener('click',function(e){if(e.target===this)toggleHelp();});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('helpModal').classList.remove('show');});
 
 function togglePassword(){
   var i=document.getElementById('apiKey'),ic=document.getElementById('eyeIcon');
@@ -41,50 +40,65 @@ function verifyCredentials(){
   var uid=document.getElementById('userId').value.trim();
   var key=document.getElementById('apiKey').value.trim();
   var btn=document.getElementById('verifyBtn');
-  var res=document.getElementById('verifyResult');
+  var r=document.getElementById('verifyResult');
 
   if(!uid){showToast('Enter User ID','error');return;}
   if(!/^\d+$/.test(uid)){showToast('Must be number','error');return;}
   if(!key){showToast('Enter API Key','error');return;}
 
   btn.classList.add('loading');btn.disabled=true;
-  res.className='verify-result';res.style.display='none';
+  r.className='verify-result';r.style.display='none';
+
+  showToast('Verifying...','info');
 
   var x=new XMLHttpRequest();
-  x.open('POST','/api/upload',true);
+  x.timeout=15000;
+  x.open('POST','/api/upload');
   x.setRequestHeader('Content-Type','application/json');
   x.setRequestHeader('x-action','verify-user');
 
-  x.onload=function(){
+  x.ontimeout=function(){
     btn.classList.remove('loading');btn.disabled=false;
-    var d;
-    try{d=JSON.parse(x.responseText);}catch(e){
-      res.className='verify-result error show';
-      res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Server error</div>';
+    r.className='verify-result error show';
+    r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Timeout - server took too long</div>';
+    showToast('Timeout!','error');
+  };
+
+  x.onreadystatechange=function(){
+    if(x.readyState!==4)return;
+
+    btn.classList.remove('loading');btn.disabled=false;
+
+    if(x.status===0){
+      r.className='verify-result error show';
+      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Cannot connect to server</div>';
+      showToast('Connection failed','error');
       return;
     }
+
+    var d;
+    try{d=JSON.parse(x.responseText);}catch(e){
+      r.className='verify-result error show';
+      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Bad response: '+x.responseText.substring(0,100)+'</div>';
+      showToast('Server error','error');
+      return;
+    }
+
     if(x.status>=200&&x.status<300&&d.valid){
       verified=true;
-      var h='<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, '+d.displayName;
-      if(d.keyValid===false)h+='<br><small style="color:var(--warning)">⚠ '+(d.keyError||'Key issue')+'</small>';
-      h+='</div>';
-      res.className='verify-result success show';res.innerHTML=h;
+      var h='<i class="fas fa-check-circle"></i><div><strong>Verified!</strong> Welcome, '+d.displayName+'</div>';
+      r.className='verify-result success show';r.innerHTML=h;
       document.getElementById('step1Status').innerHTML='<i class="fas fa-check-circle" style="color:var(--success)"></i>';
       var s2=document.getElementById('step2');s2.classList.remove('locked');s2.classList.add('unlocked');
       var lb=document.getElementById('lock2');if(lb)lb.style.display='none';
       showToast('Verified!','success');
     }else{
-      res.className='verify-result error show';
-      res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>'+(d.error||'Failed')+'</div>';
+      r.className='verify-result error show';
+      r.innerHTML='<i class="fas fa-exclamation-circle"></i><div>'+(d.error||'Failed')+'</div>';
       showToast(d.error||'Failed','error');
     }
   };
-  x.onerror=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    res.className='verify-result error show';
-    res.innerHTML='<i class="fas fa-exclamation-circle"></i><div>Network error</div>';
-    showToast('Network error','error');
-  };
+
   x.send(JSON.stringify({userId:uid,apiKey:key}));
 }
 
@@ -100,8 +114,7 @@ function handleFile(f){
   var ext='.'+f.name.split('.').pop().toLowerCase();
   if(exts.indexOf(ext)===-1){showToast('Bad format','error');return;}
   if(f.size>50*1024*1024){showToast('Too large','error');return;}
-  selectedFile=f;
-  dz.style.display='none';
+  selectedFile=f;dz.style.display='none';
   document.getElementById('fileInfo').classList.add('show');
   document.getElementById('fileName').textContent=f.name;
   document.getElementById('fileSize').textContent=fmtSize(f.size);
@@ -111,16 +124,9 @@ function handleFile(f){
   showToast('File ready','success');
 }
 
-function removeFile(){
-  selectedFile=null;fi.value='';dz.style.display='';
-  document.getElementById('fileInfo').classList.remove('show');
-}
+function removeFile(){selectedFile=null;fi.value='';dz.style.display='';document.getElementById('fileInfo').classList.remove('show');}
 
-function fmtSize(b){
-  if(b<1024)return b+' B';
-  if(b<1048576)return(b/1024).toFixed(1)+' KB';
-  return(b/1048576).toFixed(1)+' MB';
-}
+function fmtSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 
 function uploadAsset(){
   if(!verified){showToast('Verify first','error');return;}
@@ -138,7 +144,7 @@ function uploadAsset(){
   var ptxt=document.getElementById('progressText');
 
   btn.classList.add('loading');btn.disabled=true;
-  prog.classList.add('show');bar.style.width='20%';ptxt.textContent='Uploading...';
+  prog.classList.add('show');bar.style.width='10%';ptxt.textContent='Uploading...';
 
   var fd=new FormData();
   fd.append('file',selectedFile);
@@ -149,21 +155,27 @@ function uploadAsset(){
   fd.append('description',desc||'Uploaded via converter');
 
   var x=new XMLHttpRequest();
-  x.open('POST','/api/upload',true);
+  x.timeout=60000;
+  x.open('POST','/api/upload');
 
-  x.upload.onprogress=function(e){
-    if(e.lengthComputable){var p=Math.round((e.loaded/e.total)*70)+20;bar.style.width=p+'%';ptxt.textContent='Uploading... '+p+'%';}
+  x.upload.onprogress=function(e){if(e.lengthComputable){var p=Math.round((e.loaded/e.total)*60)+10;bar.style.width=p+'%';ptxt.textContent=p+'%';}};
+
+  x.ontimeout=function(){
+    btn.classList.remove('loading');btn.disabled=false;prog.classList.remove('show');
+    showToast('Upload timeout','error');
   };
 
-  x.onload=function(){
-    bar.style.width='100%';ptxt.textContent='Processing...';
+  x.onreadystatechange=function(){
+    if(x.readyState!==4)return;
+    bar.style.width='100%';
     btn.classList.remove('loading');btn.disabled=false;
 
-    var d;
-    try{d=JSON.parse(x.responseText);}catch(e){showToast('Bad response','error');setTimeout(function(){prog.classList.remove('show');},1000);return;}
+    if(x.status===0){showToast('Connection failed','error');prog.classList.remove('show');return;}
 
-    var s3=document.getElementById('step3');
-    s3.classList.remove('locked');s3.classList.add('unlocked');
+    var d;
+    try{d=JSON.parse(x.responseText);}catch(e){showToast('Bad response','error');prog.classList.remove('show');return;}
+
+    var s3=document.getElementById('step3');s3.classList.remove('locked');s3.classList.add('unlocked');
     var lb=document.getElementById('lock3');if(lb)lb.style.display='none';
 
     if(x.status>=200&&x.status<300&&d.success){
@@ -172,9 +184,8 @@ function uploadAsset(){
       if(d.assetId){
         document.getElementById('resultTitle').textContent='Asset Uploaded!';
         document.getElementById('resultAssetId').textContent=d.assetId;
-        document.getElementById('resultInsertUrl').textContent=d.insertUrl||'rbxassetid://'+d.assetId;
-        var tl=document.getElementById('resultToolboxLink');
-        tl.href=d.toolboxUrl||'https://www.roblox.com/library/'+d.assetId;
+        document.getElementById('resultInsertUrl').textContent='rbxassetid://'+d.assetId;
+        document.getElementById('resultToolboxLink').href='https://www.roblox.com/library/'+d.assetId;
         document.getElementById('toolboxRow').style.display='';
       }else{
         document.getElementById('resultTitle').textContent='Submitted!';
@@ -196,21 +207,13 @@ function uploadAsset(){
     setTimeout(function(){prog.classList.remove('show');bar.style.width='0%';},1000);
   };
 
-  x.onerror=function(){
-    btn.classList.remove('loading');btn.disabled=false;prog.classList.remove('show');
-    showToast('Network error','error');
-  };
   x.send(fd);
 }
 
 function copyText(el){
-  var c=el.querySelector('code');if(!c)return;
-  var t=c.textContent;if(!t||t==='—'||t==='Error')return;
-  navigator.clipboard.writeText(t).then(function(){
-    showToast('Copied!','success');
-    el.style.borderColor='var(--success)';
-    setTimeout(function(){el.style.borderColor='';},1000);
-  });
+  var c=el.querySelector('code');if(!c)return;var t=c.textContent;
+  if(!t||t==='—'||t==='Error')return;
+  navigator.clipboard.writeText(t).then(function(){showToast('Copied!','success');});
 }
 
 function resetUpload(){

@@ -18,35 +18,33 @@ label{display:block;font-size:13px;color:rgba(241,232,255,.6);margin-bottom:6px;
 input,select,textarea{width:100%;padding:12px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:12px;color:#f1e8ff;font-family:inherit;font-size:14px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 input::placeholder{color:rgba(241,232,255,.25)}
-select{cursor:pointer}
-select option{background:#1a0a2e}
+select{cursor:pointer}select option{background:#1a0a2e}
 textarea{resize:vertical;min-height:50px}
 .btn{width:100%;padding:14px;margin-top:16px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:12px;color:#f1e8ff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
 .btn:hover{border-color:#7c3aed;box-shadow:0 0 20px rgba(124,58,237,.2)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.loading{pointer-events:none}
-.btn.loading span{display:none}
-.btn.loading::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.btn.ld{pointer-events:none}
+.btn.ld span{display:none}
+.btn.ld::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.msg{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;display:none}
+.msg{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;display:none;word-break:break-all}
 .msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:#34d399}
 .msg.err{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171}
+.msg.info{display:block;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:#a78bfa}
 .drop{border:2px dashed rgba(139,92,246,.25);border-radius:16px;padding:30px;text-align:center;cursor:pointer;margin-top:16px;transition:all .3s}
 .drop:hover{border-color:#7c3aed;background:rgba(124,58,237,.05)}
 .drop i{font-size:32px;color:#a78bfa;display:block;margin-bottom:8px}
-.drop p{font-size:13px}
-.drop small{font-size:11px;color:rgba(241,232,255,.4)}
 .fileshow{margin-top:12px;padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;display:none;align-items:center;gap:10px;font-size:13px}
 .fileshow.show{display:flex}
 .fileshow .x{margin-left:auto;color:#f87171;cursor:pointer;font-size:16px}
-.result{margin-top:16px;padding:16px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:14px;display:none;text-align:center}
+.result{margin-top:16px;padding:16px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;display:none;text-align:center}
 .result.show{display:block}
-.result h3{font-size:18px;margin-bottom:12px}
 .result .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:12px;gap:8px;flex-wrap:wrap}
 .result .row:last-child{border:none}
 .result .row span{color:rgba(241,232,255,.5)}
 .result .row code{color:#c4b5fd;cursor:pointer;word-break:break-all}
-.result a{color:#a78bfa;text-decoration:none;font-size:13px}
+.result a{color:#a78bfa;text-decoration:none}
+.locked{opacity:.35;pointer-events:none}
 .help-btn{position:fixed;bottom:20px;right:20px;width:44px;height:44px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:50%;color:#a78bfa;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-bg.show{display:flex}
@@ -57,8 +55,6 @@ textarea{resize:vertical;min-height:50px}
 .modal code{background:rgba(139,92,246,.12);padding:1px 6px;border-radius:3px;font-size:11px;color:#c4b5fd}
 .modal a{color:#a78bfa}
 .modal .close{float:right;background:none;border:none;color:#f87171;font-size:18px;cursor:pointer}
-.step-locked{opacity:.4;pointer-events:none}
-.step-unlocked{opacity:1;pointer-events:auto}
 </style>
 </head>
 <body>
@@ -71,13 +67,13 @@ textarea{resize:vertical;min-height:50px}
 <input type="text" id="uid" placeholder="e.g. 3493541426" inputmode="numeric">
 
 <label><i class="fas fa-key"></i> API Key</label>
-<input type="password" id="key" placeholder="Paste your Open Cloud API Key">
+<input type="password" id="key" placeholder="Paste Open Cloud API Key">
 
 <button class="btn" id="vbtn" onclick="doVerify()"><i class="fas fa-shield-alt"></i><span>Verify</span></button>
 <div class="msg" id="vmsg"></div>
 </div>
 
-<div class="box step-locked" id="step2">
+<div class="box locked" id="step2">
 <h2 style="font-size:16px;margin-bottom:12px">📁 Upload File</h2>
 
 <div class="drop" id="dz" onclick="document.getElementById('finp').click()">
@@ -131,27 +127,24 @@ textarea{resize:vertical;min-height:50px}
 <ol>
 <li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
 <li>Click "Create API Key"</li>
-<li>Name: anything</li>
 <li>Permissions → Assets → Read ✅ Write ✅</li>
-<li>IP: type <code>0.0.0.0/0</code></li>
+<li>IP: <code>0.0.0.0/0</code></li>
 <li>Save & copy key</li>
 </ol>
 <h3>👤 Find User ID</h3>
 <ol>
 <li>Go to roblox.com profile</li>
-<li>URL: roblox.com/users/<code>123456</code>/profile</li>
-<li>The number = User ID</li>
+<li>URL number = User ID</li>
 </ol>
 <h3>📁 Get RBXM</h3>
 <ol>
-<li>Roblox Studio → right-click model</li>
-<li>"Save to File" → .rbxm</li>
+<li>Studio → right-click model → "Save to File" → .rbxm</li>
 </ol>
 <h3>⚠️ Errors</h3>
 <ul>
 <li><strong>401</strong> = Wrong API Key</li>
 <li><strong>403</strong> = Missing permissions</li>
-<li><strong>429</strong> = Rate limited, wait</li>
+<li><strong>429</strong> = Wait 1 minute</li>
 </ul>
 </div>
 </div>
@@ -168,56 +161,39 @@ function doVerify(){
   if(!uid||!/^\d+$/.test(uid)){msg.className='msg err';msg.textContent='Enter valid User ID';return;}
   if(!key||key.length<10){msg.className='msg err';msg.textContent='Enter valid API Key';return;}
 
-  btn.classList.add('loading');btn.disabled=true;
-  msg.className='msg';msg.style.display='none';
+  btn.classList.add('ld');btn.disabled=true;
+  msg.className='msg info';msg.textContent='⏳ Verifying...';
 
   var x=new XMLHttpRequest();
   x.open('GET','/api/verify?uid='+uid);
   x.timeout=10000;
-
-  x.ontimeout=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    msg.className='msg err';msg.textContent='Timeout - try again';
-  };
-
+  x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Timeout';};
+  x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Network error';};
   x.onload=function(){
-    btn.classList.remove('loading');btn.disabled=false;
+    btn.classList.remove('ld');btn.disabled=false;
     try{
       var d=JSON.parse(x.responseText);
       if(d.valid){
-        ok=true;
-        msg.className='msg ok';msg.textContent='✅ Welcome, '+d.displayName+'!';
-        document.getElementById('step2').className='box step-unlocked';
-      }else{
-        msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');
-      }
-    }catch(e){
-      msg.className='msg err';msg.textContent='Bad response';
-    }
+        ok=true;msg.className='msg ok';msg.textContent='✅ Welcome, '+d.displayName+'!';
+        document.getElementById('step2').classList.remove('locked');
+      }else{msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');}
+    }catch(e){msg.className='msg err';msg.textContent='Bad response: '+x.responseText.substring(0,100);}
   };
-
-  x.onerror=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    msg.className='msg err';msg.textContent='Network error';
-  };
-
   x.send();
 }
 
-document.getElementById('finp').addEventListener('change',function(e){
-  if(e.target.files.length)pickFile(e.target.files[0]);
-});
+document.getElementById('finp').addEventListener('change',function(e){if(e.target.files.length)pickFile(e.target.files[0]);});
 
 function pickFile(f){
   var exts=['.rbxm','.rbxmx','.fbx','.obj','.png','.jpg','.jpeg','.mp3','.ogg'];
   var ext='.'+f.name.split('.').pop().toLowerCase();
-  if(exts.indexOf(ext)===-1){alert('Bad format');return;}
-  if(f.size>50*1024*1024){alert('Too large');return;}
+  if(exts.indexOf(ext)===-1){alert('Format not supported');return;}
+  if(f.size>50*1024*1024){alert('File too large (max 50MB)');return;}
   file=f;
   document.getElementById('dz').style.display='none';
-  var fs=document.getElementById('fshow');fs.classList.add('show');
+  document.getElementById('fshow').classList.add('show');
   document.getElementById('fname').textContent=f.name;
-  document.getElementById('fsize').textContent=(f.size/1024).toFixed(1)+' KB';
+  document.getElementById('fsize').textContent=(f.size<1048576?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB');
   if(!document.getElementById('aname').value)document.getElementById('aname').value=f.name.replace(/\.[^.]+$/,'');
   var tm={'.rbxm':'Model','.rbxmx':'Model','.png':'Decal','.jpg':'Decal','.jpeg':'Decal','.mp3':'Audio','.ogg':'Audio','.fbx':'Mesh','.obj':'Mesh'};
   if(tm[ext])document.getElementById('atype').value=tm[ext];
@@ -231,59 +207,108 @@ function clearFile(){
 
 function doUpload(){
   if(!ok){alert('Verify first');return;}
-  if(!file){alert('Select file');return;}
+  if(!file){alert('Select a file');return;}
 
+  var uid=document.getElementById('uid').value.trim();
+  var key=document.getElementById('key').value.trim();
   var btn=document.getElementById('ubtn');
   var msg=document.getElementById('umsg');
 
-  btn.classList.add('loading');btn.disabled=true;
-  msg.className='msg';msg.style.display='none';
+  btn.classList.add('ld');btn.disabled=true;
+  msg.className='msg info';msg.textContent='⏳ Step 1: Sending to server...';
 
+  // Step 1: Test debug endpoint first
   var fd=new FormData();
   fd.append('file',file);
-  fd.append('userId',document.getElementById('uid').value.trim());
-  fd.append('apiKey',document.getElementById('key').value.trim());
+  fd.append('userId',uid);
+  fd.append('apiKey',key);
   fd.append('assetType',document.getElementById('atype').value);
   fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
   fd.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
 
   var x=new XMLHttpRequest();
-  x.open('POST','/api/upload');
-  x.timeout=60000;
+  x.open('POST','/api/debug');
+  x.timeout=15000;
 
   x.ontimeout=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    msg.className='msg err';msg.textContent='Timeout';
-  };
-
-  x.onload=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    try{
-      var d=JSON.parse(x.responseText);
-      if(d.success){
-        var r=document.getElementById('res');r.classList.add('show');
-        document.getElementById('rtitle').textContent='✅ Uploaded!';
-        if(d.assetId){
-          document.getElementById('raid').textContent=d.assetId;
-          document.getElementById('rurl').textContent='rbxassetid://'+d.assetId;
-          document.getElementById('rtbox').href='https://www.roblox.com/library/'+d.assetId;
-          document.getElementById('rlink').style.display='';
-        }else{
-          document.getElementById('raid').textContent='Processing...';
-          document.getElementById('rurl').textContent='Check inventory';
-          document.getElementById('rlink').style.display='none';
-        }
-      }else{
-        msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');
-      }
-    }catch(e){
-      msg.className='msg err';msg.textContent='Bad response';
-    }
+    btn.classList.remove('ld');btn.disabled=false;
+    msg.className='msg err';msg.textContent='❌ Timeout sending file';
   };
 
   x.onerror=function(){
-    btn.classList.remove('loading');btn.disabled=false;
-    msg.className='msg err';msg.textContent='Network error';
+    btn.classList.remove('ld');btn.disabled=false;
+    msg.className='msg err';msg.textContent='❌ Network error sending file';
+  };
+
+  x.onload=function(){
+    var debugInfo='';
+    try{debugInfo=x.responseText;}catch(e){}
+
+    msg.className='msg info';msg.textContent='⏳ Step 2: Debug says: '+debugInfo.substring(0,200)+' ... Now uploading to Roblox...';
+
+    // Check if body arrived
+    try{
+      var dd=JSON.parse(debugInfo);
+      if(!dd.hasBody||dd.bodySize<100){
+        btn.classList.remove('ld');btn.disabled=false;
+        msg.className='msg err';msg.textContent='❌ File not received by server. Debug: '+debugInfo;
+        return;
+      }
+    }catch(e){}
+
+    // Step 2: Now send to real upload
+    var fd2=new FormData();
+    fd2.append('file',file);
+    fd2.append('userId',uid);
+    fd2.append('apiKey',key);
+    fd2.append('assetType',document.getElementById('atype').value);
+    fd2.append('displayName',document.getElementById('aname').value.trim()||'Asset');
+    fd2.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
+
+    var x2=new XMLHttpRequest();
+    x2.open('POST','/api/upload');
+    x2.timeout=60000;
+
+    x2.ontimeout=function(){
+      btn.classList.remove('ld');btn.disabled=false;
+      msg.className='msg err';msg.textContent='❌ Upload timeout (Roblox took too long)';
+    };
+
+    x2.onerror=function(){
+      btn.classList.remove('ld');btn.disabled=false;
+      msg.className='msg err';msg.textContent='❌ Upload network error';
+    };
+
+    x2.onload=function(){
+      btn.classList.remove('ld');btn.disabled=false;
+
+      msg.className='msg info';msg.textContent='Response: '+x2.responseText.substring(0,300);
+
+      try{
+        var d=JSON.parse(x2.responseText);
+        if(d.success){
+          document.getElementById('res').classList.add('show');
+          document.getElementById('rtitle').textContent='✅ Uploaded!';
+          msg.className='msg ok';msg.textContent='✅ Upload successful!';
+          if(d.assetId){
+            document.getElementById('raid').textContent=d.assetId;
+            document.getElementById('rurl').textContent='rbxassetid://'+d.assetId;
+            document.getElementById('rtbox').href='https://www.roblox.com/library/'+d.assetId;
+            document.getElementById('rlink').style.display='';
+          }else{
+            document.getElementById('raid').textContent='Processing...';
+            document.getElementById('rurl').textContent='Check inventory';
+            document.getElementById('rlink').style.display='none';
+          }
+        }else{
+          msg.className='msg err';msg.textContent='❌ Roblox error: '+(d.error||'Unknown')+' | Full: '+x2.responseText.substring(0,200);
+        }
+      }catch(e){
+        msg.className='msg err';msg.textContent='❌ Parse error. Raw: '+x2.responseText.substring(0,300);
+      }
+    };
+
+    x2.send(fd2);
   };
 
   x.send(fd);
@@ -297,7 +322,8 @@ function cp(el){
 
 function resetAll(){
   clearFile();document.getElementById('aname').value='';
-  document.getElementById('adesc').value='';document.getElementById('res').classList.remove('show');
+  document.getElementById('adesc').value='';
+  document.getElementById('res').classList.remove('show');
   document.getElementById('umsg').className='msg';
 }
 </script>

@@ -1,3 +1,5 @@
 {
-  "dependencies": {}
+  "name": "rbxm-to-toolbox",
+  "version": "1.0.0",
+  "private": true
 }

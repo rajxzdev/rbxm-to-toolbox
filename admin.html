@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0612;color:#f1e8ff;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse at 80% 70%,rgba(236,72,153,.1),transparent);z-index:0;pointer-events:none}
+.container{max-width:700px;margin:0 auto;padding:16px;position:relative;z-index:1}
+.glass{background:rgba(139,92,246,.08);backdrop-filter:blur(40px);border:1px solid rgba(139,92,246,.2);border-radius:20px;position:relative;overflow:hidden}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);pointer-events:none}
+.card{padding:20px;margin-bottom:12px}
+.card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+label{display:block;font-size:13px;color:rgba(241,232,255,.55);margin-bottom:6px;margin-top:12px}
+input,select,textarea{width:100%;padding:10px 12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;color:#f1e8ff;font-family:inherit;font-size:14px;outline:none}
+input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+input::placeholder{color:rgba(241,232,255,.25)}
+textarea{resize:vertical;min-height:60px}
+.btn{width:100%;padding:12px;margin-top:12px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:10px;color:#f1e8ff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{border-color:#7c3aed}
+.btn:disabled{opacity:.5}
+.btn-sm{width:auto;padding:6px 14px;margin:0;font-size:12px;display:inline-flex}
+.btn-ok{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3);color:#34d399}
+.btn-er{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3);color:#f87171}
+.msg{margin-top:10px;padding:10px;border-radius:8px;font-size:13px;display:none}
+.msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:#34d399}
+.msg.er{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171}
+.tabs{display:flex;gap:4px;padding:4px;background:rgba(139,92,246,.06);border-radius:14px;margin-bottom:14px;flex-wrap:wrap}
+.tab{flex:1;padding:8px;text-align:center;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;color:rgba(241,232,255,.55);transition:all .3s;min-width:60px}
+.tab.active{background:rgba(124,58,237,.2);color:#f1e8ff;border:1px solid rgba(124,58,237,.3)}
+.tbl{width:100%;font-size:12px;border-collapse:collapse}
+.tbl th{text-align:left;padding:8px;color:rgba(241,232,255,.5);border-bottom:1px solid rgba(139,92,246,.15)}
+.tbl td{padding:8px;border-bottom:1px solid rgba(139,92,246,.08)}
+.tx-item{padding:12px;margin-bottom:8px;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.1);border-radius:10px;font-size:12px}
+.st-pending{color:#fbbf24}.st-approved{color:#34d399}.st-rejected{color:#f87171}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.qris-preview{max-width:150px;border-radius:8px;margin-top:8px;border:1px solid rgba(139,92,246,.2)}
+.hidden{display:none}
+#adminLogin{max-width:400px;margin:80px auto}
+h1{font-size:24px;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,#c4b5fd,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{text-align:center;font-size:13px;color:rgba(241,232,255,.5);margin-bottom:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="adminLogin" class="card glass">
+<h1>🔐 Admin Panel</h1>
+<p class="sub">RBXM Converter Management</p>
+<label>Password</label>
+<input type="password" id="aPw" placeholder="Admin password">
+<button class="btn" onclick="aLogin()"><i class="fas fa-lock"></i> Login</button>
+<div class="msg" id="aMsg"></div>
+</div>
+
+<!-- PANEL -->
+<div id="adminPanel" class="hidden">
+
+<div class="card glass" style="padding:14px 20px;margin-bottom:14px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<h2 style="margin:0"><i class="fas fa-shield-alt" style="color:#a78bfa"></i> Admin Panel</h2>
+<button class="btn-sm btn-er" onclick="aLogout()"><i class="fas fa-sign-out-alt"></i></button>
+</div>
+</div>
+
+<div class="tabs" id="aTabs">
+<div class="tab active" onclick="aTab('payment')">💳 Payment</div>
+<div class="tab" onclick="aTab('coin')">🪙 Coins</div>
+<div class="tab" onclick="aTab('users')">👥 Users</div>
+<div class="tab" onclick="aTab('topup')">📋 Topup</div>
+<div class="tab" onclick="aTab('tx')">📊 History</div>
+</div>
+
+<!-- PAYMENT -->
+<div id="aPayment" class="card glass">
+<h2>💳 Payment Methods</h2>
+<p style="font-size:12px;color:rgba(241,232,255,.5);margin-bottom:12px">Semua device bisa lihat metode pembayaran ini</p>
+
+<label>QRIS (Base64 Image)</label>
+<input type="file" id="qrisFile" accept="image/*" onchange="handleQris(this)">
+<img id="qrisPreview" class="qris-preview hidden">
+<input type="hidden" id="pmQris">
+
+<div class="grid2">
+<div><label>Dana</label><input type="text" id="pmDana" placeholder="08xxxxxxxxxx"></div>
+<div><label>GoPay</label><input type="text" id="pmGopay" placeholder="08xxxxxxxxxx"></div>
+<div><label>OVO</label><input type="text" id="pmOvo" placeholder="08xxxxxxxxxx"></div>
+<div><label>ShopeePay</label><input type="text" id="pmShopee" placeholder="08xxxxxxxxxx"></div>
+<div><label>No Rekening</label><input type="text" id="pmNorek" placeholder="Belum diisi"></div>
+<div><label>Nama Bank</label><input type="text" id="pmBank" placeholder="BCA / BRI / dll"></div>
+</div>
+
+<button class="btn" onclick="savePayment()"><i class="fas fa-save"></i> Save Payment Methods</button>
+<div class="msg" id="pmMsg"></div>
+</div>
+
+<!-- COIN SETTINGS -->
+<div id="aCoin" class="card glass hidden">
+<h2>🪙 Coin Settings</h2>
+<div class="grid2">
+<div><label>Harga per Coin (Rp)</label><input type="number" id="csPrice" placeholder="1000"></div>
+<div><label>Min Topup (coins)</label><input type="number" id="csMin" placeholder="5"></div>
+<div><label>Upload Cost (coins)</label><input type="number" id="csCost" placeholder="1"></div>
+</div>
+<button class="btn" onclick="saveCoinSet()"><i class="fas fa-save"></i> Save</button>
+<div class="msg" id="csMsg"></div>
+</div>
+
+<!-- USERS -->
+<div id="aUsers" class="card glass hidden">
+<h2>👥 Users</h2>
+<div id="userList"><p style="font-size:13px;color:rgba(241,232,255,.5)">Loading...</p></div>
+<hr style="border-color:rgba(139,92,246,.1);margin:14px 0">
+<h3 style="font-size:14px;margin-bottom:8px">Manual Topup</h3>
+<div class="grid2">
+<div><label>Username</label><input type="text" id="mtUser" placeholder="username"></div>
+<div><label>Amount</label><input type="number" id="mtAmount" placeholder="10"></div>
+</div>
+<button class="btn" onclick="manualTopup()"><i class="fas fa-plus"></i> Add Coins</button>
+<div class="msg" id="mtMsg"></div>
+</div>
+
+<!-- PENDING TOPUP -->
+<div id="aTopup" class="card glass hidden">
+<h2>📋 Pending Topup Requests</h2>
+<div id="pendingList"><p style="font-size:13px;color:rgba(241,232,255,.5)">Loading...</p></div>
+</div>
+
+<!-- TX HISTORY -->
+<div id="aTx" class="card glass hidden">
+<h2>📊 Recent Transactions</h2>
+<div id="recentList"><p style="font-size:13px;color:rgba(241,232,255,.5)">Loading...</p></div>
+</div>
+
+</div>
+</div>
+
+<script>
+var API='https://rbxm-api.mobilador0910.workers.dev';
+var atok=localStorage.getItem('admin_token')||'';
+
+if(atok){document.getElementById('adminLogin').classList.add('hidden');document.getElementById('adminPanel').classList.remove('hidden');loadAll()}
+
+function aj(path,method,body){
+  var h={'Content-Type':'application/json','Authorization':'Bearer '+atok};
+  var o={method:method||'GET',headers:h};
+  if(body)o.body=JSON.stringify(body);
+  return fetch(API+path,o).then(function(r){return r.json()});
+}
+
+function aLogin(){
+  var pw=document.getElementById('aPw').value;
+  var msg=document.getElementById('aMsg');
+  if(!pw){msg.className='msg er';msg.textContent='Enter password';return}
+  fetch(API+'/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})})
+  .then(function(r){return r.json()}).then(function(d){
+    if(d.success){
+      atok=d.token;localStorage.setItem('admin_token',atok);
+      document.getElementById('adminLogin').classList.add('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+      loadAll();
+    }else{msg.className='msg er';msg.textContent=d.error||'Wrong password'}
+  }).catch(function(){msg.className='msg er';msg.textContent='Network error'});
+}
+
+function aLogout(){atok='';localStorage.removeItem('admin_token');location.reload()}
+
+function aTab(t){
+  var tabs=['payment','coin','users','topup','tx'];
+  var tabEls=document.querySelectorAll('#aTabs .tab');
+  tabs.forEach(function(x,i){
+    var el=document.getElementById('a'+x.charAt(0).toUpperCase()+x.slice(1));
+    if(el){el.classList.toggle('hidden',x!==t)}
+    if(tabEls[i])tabEls[i].classList.toggle('active',x===t);
+  });
+  if(t==='users')loadUsers();
+  if(t==='topup')loadPending();
+  if(t==='tx')loadRecent();
+}
+
+function loadAll(){loadPaymentAdmin();loadCoinSetAdmin();loadUsers();loadPending()}
+
+function loadPaymentAdmin(){
+  aj('/api/admin/payment/get').then(function(d){
+    if(d.dana)document.getElementById('pmDana').value=d.dana;
+    if(d.gopay)document.getElementById('pmGopay').value=d.gopay;
+    if(d.ovo)document.getElementById('pmOvo').value=d.ovo;
+    if(d.shopeepay)document.getElementById('pmShopee').value=d.shopeepay;
+    if(d.norek)document.getElementById('pmNorek').value=d.norek;
+    if(d.bank_name)document.getElementById('pmBank').value=d.bank_name;
+    if(d.qris_image){
+      document.getElementById('pmQris').value=d.qris_image;
+      document.getElementById('qrisPreview').src=d.qris_image;
+      document.getElementById('qrisPreview').classList.remove('hidden');
+    }
+  });
+}
+
+function loadCoinSetAdmin(){
+  aj('/api/admin/coin-settings/get').then(function(d){
+    document.getElementById('csPrice').value=d.price_per_coin||1000;
+    document.getElementById('csMin').value=d.min_topup||5;
+    document.getElementById('csCost').value=d.upload_cost||1;
+  });
+}
+
+function handleQris(input){
+  if(!input.files[0])return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    document.getElementById('pmQris').value=e.target.result;
+    document.getElementById('qrisPreview').src=e.target.result;
+    document.getElementById('qrisPreview').classList.remove('hidden');
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function savePayment(){
+  var data={
+    qris_image:document.getElementById('pmQris').value,
+    dana:document.getElementById('pmDana').value.trim(),
+    gopay:document.getElementById('pmGopay').value.trim(),
+    ovo:document.getElementById('pmOvo').value.trim(),
+    shopeepay:document.getElementById('pmShopee').value.trim(),
+    norek:document.getElementById('pmNorek').value.trim(),
+    bank_name:document.getElementById('pmBank').value.trim(),
+    custom:[]
+  };
+  var msg=document.getElementById('pmMsg');
+  aj('/api/admin/payment','POST',data).then(function(d){
+    if(d.success){msg.className='msg ok';msg.textContent='✅ Saved!'}
+    else{msg.className='msg er';msg.textContent=d.error}
+  }).catch(function(){msg.className='msg er';msg.textContent='Error'});
+}
+
+function saveCoinSet(){
+  var data={
+    price_per_coin:parseInt(document.getElementById('csPrice').value)||1000,
+    min_topup:parseInt(document.getElementById('csMin').value)||5,
+    upload_cost:parseInt(document.getElementById('csCost').value)||1
+  };
+  var msg=document.getElementById('csMsg');
+  aj('/api/admin/coin-settings','POST',data).then(function(d){
+    if(d.success){msg.className='msg ok';msg.textContent='✅ Saved!'}
+    else{msg.className='msg er';msg.textContent=d.error}
+  }).catch(function(){msg.className='msg er';msg.textContent='Error'});
+}
+
+function loadUsers(){
+  aj('/api/admin/users').then(function(d){
+    if(!d.users||d.users.length===0){document.getElementById('userList').innerHTML='<p style="color:rgba(241,232,255,.5);font-size:13px">No users</p>';return}
+    var h='<table class="tbl"><tr><th>User</th><th>Coins</th><th>Joined</th></tr>';
+    d.users.forEach(function(u){
+      h+='<tr><td>'+u.username+'</td><td style="color:#fbbf24">'+u.coin+'</td><td>'+new Date(u.createdAt).toLocaleDateString()+'</td></tr>';
+    });
+    h+='</table>';
+    document.getElementById('userList').innerHTML=h;
+  });
+}
+
+function manualTopup(){
+  var u=document.getElementById('mtUser').value.trim();
+  var a=parseInt(document.getElementById('mtAmount').value)||0;
+  var msg=document.getElementById('mtMsg');
+  if(!u||a===0){msg.className='msg er';msg.textContent='Fill fields';return}
+  aj('/api/admin/topup','POST',{username:u,amount:a}).then(function(d){
+    if(d.success){msg.className='msg ok';msg.textContent='✅ Added! Balance: '+d.newBalance;loadUsers()}
+    else{msg.className='msg er';msg.textContent=d.error}
+  });
+}
+
+function loadPending(){
+  aj('/api/admin/transactions').then(function(d){
+    var el=document.getElementById('pendingList');
+    if(!d.pending||d.pending.length===0){el.innerHTML='<p style="color:rgba(241,232,255,.5);font-size:13px">No pending requests 🎉</p>';return}
+    var h='';
+    d.pending.forEach(function(t){
+      h+='<div class="tx-item"><div style="display:flex;justify-content:space-between"><strong>'+t.username+'</strong><span style="color:#fbbf24">+'+t.amount+' coins</span></div>';
+      h+='<div style="color:rgba(241,232,255,.5);margin:4px 0">'+t.method+(t.proof?' · '+t.proof:'')+'</div>';
+      h+='<div style="margin-top:6px;display:flex;gap:6px"><button class="btn-sm btn-ok" onclick="approveTx(\''+t.id+'\')"><i class="fas fa-check"></i> Approve</button><button class="btn-sm btn-er" onclick="rejectTx(\''+t.id+'\')"><i class="fas fa-times"></i> Reject</button></div></div>';
+    });
+    el.innerHTML=h;
+  });
+}
+
+function approveTx(id){
+  aj('/api/admin/approve','POST',{txId:id}).then(function(d){
+    if(d.success){alert('Approved! New balance: '+d.newBalance);loadPending();loadUsers()}
+    else{alert(d.error)}
+  });
+}
+
+function rejectTx(id){
+  var r=prompt('Reason (optional):');
+  aj('/api/admin/reject','POST',{txId:id,reason:r||'Rejected'}).then(function(d){
+    if(d.success){alert('Rejected');loadPending()}
+    else{alert(d.error)}
+  });
+}
+
+function loadRecent(){
+  aj('/api/admin/transactions').then(function(d){
+    var el=document.getElementById('recentList');
+    if(!d.recent||d.recent.length===0){el.innerHTML='<p style="color:rgba(241,232,255,.5);font-size:13px">No transactions</p>';return}
+    var h='';
+    d.recent.forEach(function(t){
+      var sc=t.status==='approved'?'st-approved':t.status==='rejected'?'st-rejected':'st-pending';
+      h+='<div class="tx-item"><div style="display:flex;justify-content:space-between"><strong>'+t.username+'</strong><span class="'+sc+'">'+t.status+'</span></div>';
+      h+='<div style="color:rgba(241,232,255,.5);margin-top:4px">'+t.method+' · +'+t.amount+' coins · '+new Date(t.time).toLocaleDateString()+'</div></div>';
+    });
+    el.innerHTML=h;
+  });
+}
+</script>
+</body>
+  </html>

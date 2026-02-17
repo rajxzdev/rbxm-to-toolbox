@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RBXM Converter</title>
+<title>Roblox Asset Uploader</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -16,24 +16,35 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation:tw var(--d) ease-in-out infinite}
 @keyframes tw{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:var(--o);transform:scale(1)}}
 
+.shooting-stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.shoot{position:absolute;width:80px;height:1px;background:linear-gradient(90deg,rgba(167,139,250,.8),transparent);opacity:0}
+.shoot:nth-child(1){top:15%;left:10%;animation:sh 4s 1s ease-out infinite;transform:rotate(-20deg)}
+.shoot:nth-child(2){top:35%;left:50%;animation:sh 5s 3s ease-out infinite;transform:rotate(-15deg)}
+.shoot:nth-child(3){top:60%;left:25%;animation:sh 6s 5s ease-out infinite;transform:rotate(-25deg)}
+@keyframes sh{0%{opacity:0;transform:translateX(0) rotate(-20deg)}5%{opacity:1}15%{opacity:0;transform:translateX(250px) rotate(-20deg)}100%{opacity:0}}
+
+.orb{position:fixed;border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none;animation:ob 15s ease-in-out infinite}
+.orb1{width:350px;height:350px;background:rgba(124,58,237,.12);top:-80px;left:-80px}
+.orb2{width:250px;height:250px;background:rgba(236,72,153,.08);bottom:-40px;right:-40px;animation-delay:-5s}
+@keyframes ob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-20px) scale(1.05)}}
+
 .glass{background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(139,92,246,.04),rgba(236,72,153,.04));backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--gb);border-radius:var(--r);position:relative;overflow:hidden}
 .glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);pointer-events:none}
 
 .container{max-width:600px;margin:0 auto;padding:16px;position:relative;z-index:1}
 .page{display:none}.page.active{display:block}
 
-/* Header */
 .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-bottom:16px}
 .logo{display:flex;align-items:center;gap:12px}
-.logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--p3),var(--pk));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.logo h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--ps),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--p3),var(--pk));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 20px rgba(124,58,237,.3);animation:glow 3s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(124,58,237,.3)}50%{box-shadow:0 0 35px rgba(124,58,237,.5)}}
+.logo h1{font-size:17px;font-weight:700;background:linear-gradient(135deg,var(--ps),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .logo small{font-size:11px;color:var(--tx2);display:block}
 .coin-badge{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:20px;font-size:13px;font-weight:600;color:var(--wn)}
 .user-menu{display:flex;gap:8px;align-items:center}
 .icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--gb);background:var(--gl);color:var(--pg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .3s}
-.icon-btn:hover{border-color:var(--p3);background:rgba(124,58,237,.15)}
+.icon-btn:hover{border-color:var(--p3);background:rgba(124,58,237,.15);transform:translateY(-2px)}
 
-/* Inputs */
 label{display:block;font-size:13px;color:var(--tx2);margin-bottom:6px;margin-top:14px}
 input,select,textarea{width:100%;padding:12px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:var(--rs);color:var(--tx);font-family:inherit;font-size:14px;outline:none;transition:all .3s}
 input:focus,select:focus,textarea:focus{border-color:var(--p3);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
@@ -41,72 +52,67 @@ input::placeholder{color:rgba(241,232,255,.25)}
 select{cursor:pointer}select option{background:var(--p1)}
 textarea{resize:vertical;min-height:50px}
 
-/* Buttons */
-.btn{width:100%;padding:14px;margin-top:14px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:var(--rs);color:var(--tx);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
-.btn:hover{border-color:var(--p3);box-shadow:0 0 20px rgba(124,58,237,.2)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn{width:100%;padding:14px;margin-top:14px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:var(--rs);color:var(--tx);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s;position:relative;overflow:hidden}
+.btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transition:left .5s}
+.btn:hover::before{left:100%}
+.btn:hover{border-color:var(--p3);box-shadow:0 0 20px rgba(124,58,237,.2);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .btn.ld span{display:none}
 .btn.ld::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .btn-sm{width:auto;padding:8px 16px;margin:0;font-size:13px}
-.btn-ok{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3);color:var(--ok)}
-.btn-er{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3);color:var(--er)}
-.btn-ghost{background:transparent;border-color:var(--gb)}
 
-/* Messages */
-.msg{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
+.msg{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;display:none;animation:fadeIn .3s}
 .msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:var(--ok)}
 .msg.er{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--er)}
 .msg.info{display:block;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:var(--pg)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* Tabs */
 .tabs{display:flex;gap:4px;padding:4px;background:rgba(139,92,246,.06);border-radius:14px;margin-bottom:16px}
 .tab{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;color:var(--tx2);transition:all .3s}
 .tab.active{background:rgba(124,58,237,.2);color:var(--tx);border:1px solid rgba(124,58,237,.3)}
 
-/* Cards */
 .card{padding:20px;margin-bottom:12px}
 .card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.card h3{font-size:14px;margin-bottom:10px;color:var(--ps)}
 
-/* File upload */
 .drop{border:2px dashed rgba(139,92,246,.25);border-radius:16px;padding:30px;text-align:center;cursor:pointer;transition:all .3s}
 .drop:hover{border-color:var(--p3);background:rgba(124,58,237,.05)}
-.drop i{font-size:32px;color:var(--pg);display:block;margin-bottom:8px}
+.drop i{font-size:32px;color:var(--pg);display:block;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.drop p{font-size:13px}
+.drop small{font-size:11px;color:var(--tx2)}
 .fshow{margin-top:10px;padding:10px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;display:none;align-items:center;gap:10px;font-size:13px}
 .fshow.show{display:flex}
 .fshow .x{margin-left:auto;color:var(--er);cursor:pointer}
 
-/* Result */
 .result{margin-top:14px;padding:14px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;display:none}
-.result.show{display:block}
+.result.show{display:block;animation:fadeIn .4s}
 .result .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:12px;gap:8px;flex-wrap:wrap}
 .result .row:last-child{border:none}
 .result .row span{color:var(--tx2)}
 .result .row code{color:var(--ps);cursor:pointer;word-break:break-all}
+.result a{color:var(--pg);text-decoration:none}
 
-/* Payment display */
 .pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.pay-card{padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);border-radius:10px;text-align:center;font-size:12px}
+.pay-card{padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);border-radius:10px;text-align:center;font-size:12px;transition:all .3s}
+.pay-card:hover{border-color:var(--p3)}
 .pay-card i{font-size:20px;color:var(--pg);display:block;margin-bottom:4px}
 .pay-card strong{display:block;margin-top:4px;color:var(--tx);font-size:13px;word-break:break-all}
 .qris-img{max-width:200px;margin:10px auto;display:block;border-radius:10px;border:1px solid var(--gb)}
 
-/* TX list */
 .tx-item{padding:12px;margin-bottom:8px;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.1);border-radius:10px;font-size:12px}
-.tx-item .status{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.status{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
 .st-pending{background:rgba(251,191,36,.15);color:var(--wn)}
 .st-approved{background:rgba(52,211,153,.15);color:var(--ok)}
 .st-rejected{background:rgba(248,113,113,.15);color:var(--er)}
 
-/* Auth page */
 .auth-box{max-width:400px;margin:60px auto;padding:32px;text-align:center}
 .auth-box h1{font-size:28px;margin-bottom:6px;background:linear-gradient(135deg,var(--ps),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .auth-box p{font-size:13px;color:var(--tx2);margin-bottom:20px}
 .auth-toggle{margin-top:16px;font-size:13px;color:var(--tx2)}
 .auth-toggle a{color:var(--pg);cursor:pointer;text-decoration:none}
 
-/* Help modal */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.show{display:flex}
 .modal{max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px}
@@ -117,21 +123,27 @@ textarea{resize:vertical;min-height:50px}
 .modal a{color:var(--pg)}
 .modal .close{float:right;background:none;border:none;color:var(--er);font-size:18px;cursor:pointer}
 
-.hidden{display:none}
-@media(max-width:480px){.pay-methods{grid-template-columns:1fr}}
+.note{font-size:11px;color:var(--tx2);margin-top:12px;text-align:center;padding:8px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.1);border-radius:8px}
+
+.footer{text-align:center;padding:16px;font-size:11px;color:var(--tx2);margin-top:8px}
+
+@media(max-width:480px){.pay-methods{grid-template-columns:1fr}.header{flex-wrap:wrap;gap:10px}.user-menu{width:100%;justify-content:flex-end}}
 </style>
 </head>
 <body>
 
 <div class="stars" id="stars"></div>
+<div class="shooting-stars"><div class="shoot"></div><div class="shoot"></div><div class="shoot"></div></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
 
 <!-- AUTH PAGE -->
 <div class="page active" id="authPage">
 <div class="container">
 <div class="auth-box glass card">
-<div class="logo-icon" style="margin:0 auto 16px;width:56px;height:56px;font-size:26px"><i class="fas fa-cube"></i></div>
-<h1>RBXM Converter</h1>
-<p>Convert .rbxm files to Roblox Asset IDs</p>
+<div class="logo-icon" style="margin:0 auto 16px;width:56px;height:56px;font-size:26px"><i class="fas fa-cloud-upload-alt"></i></div>
+<h1>Roblox Asset Uploader</h1>
+<p>Upload images, audio & mesh to Roblox Toolbox</p>
 
 <div class="tabs" id="authTabs">
 <div class="tab active" onclick="showAuthTab('login')">Login</div>
@@ -165,8 +177,8 @@ textarea{resize:vertical;min-height:50px}
 
 <div class="header glass">
 <div class="logo">
-<div class="logo-icon"><i class="fas fa-cube"></i></div>
-<div><h1>RBXM Converter</h1><small id="welcomeUser">Welcome</small></div>
+<div class="logo-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+<div><h1>Asset Uploader</h1><small id="welcomeUser">Welcome</small></div>
 </div>
 <div class="user-menu">
 <div class="coin-badge"><i class="fas fa-coins"></i><span id="coinDisplay">0</span></div>
@@ -176,17 +188,16 @@ textarea{resize:vertical;min-height:50px}
 </div>
 </div>
 
-<!-- NAV -->
 <div class="tabs">
-<div class="tab active" onclick="showPage('convert')">Convert</div>
+<div class="tab active" onclick="showPage('convert')">Upload</div>
 <div class="tab" onclick="showPage('topup')">Topup</div>
 <div class="tab" onclick="showPage('history')">History</div>
 </div>
 
-<!-- CONVERT PAGE -->
+<!-- UPLOAD PAGE -->
 <div id="convertPage">
 <div class="card glass">
-<h2><i class="fas fa-exchange-alt" style="color:var(--pg)"></i> Convert RBXM</h2>
+<h2><i class="fas fa-upload" style="color:var(--pg)"></i> Upload Asset</h2>
 
 <label><i class="fas fa-user"></i> Roblox User ID</label>
 <input type="text" id="uid" placeholder="e.g. 3493541426" inputmode="numeric">
@@ -197,26 +208,25 @@ textarea{resize:vertical;min-height:50px}
 <div class="drop" id="dz" onclick="document.getElementById('finp').click()">
 <i class="fas fa-cloud-upload-alt"></i>
 <p>Tap to select file</p>
-<small>.rbxm .png .jpg .mp3 .fbx</small>
+<small>.png .jpg .mp3 .ogg .fbx .obj</small>
 </div>
-<input type="file" id="finp" accept=".rbxm,.rbxmx,.fbx,.obj,.png,.jpg,.jpeg,.mp3,.ogg" hidden>
+<input type="file" id="finp" accept=".png,.jpg,.jpeg,.mp3,.ogg,.fbx,.obj" hidden>
 
 <div class="fshow" id="fshow">
-<i class="fas fa-file-code" style="color:var(--pg)"></i>
+<i class="fas fa-file" style="color:var(--pg)"></i>
 <span id="fname">—</span>
 <span id="fsize" style="color:var(--tx2)">—</span>
 <i class="fas fa-times x" onclick="clearFile()"></i>
 </div>
 
 <label>Asset Name</label>
-<input type="text" id="aname" placeholder="My Model" maxlength="50">
+<input type="text" id="aname" placeholder="My Asset" maxlength="50">
 
 <label>Asset Type</label>
 <select id="atype">
-<option value="Model">Model (.rbxm)</option>
-<option value="Decal">Decal (.png/.jpg)</option>
-<option value="Audio">Audio (.mp3/.ogg)</option>
-<option value="Mesh">Mesh (.fbx/.obj)</option>
+<option value="Decal">Image / Decal (.png .jpg)</option>
+<option value="Audio">Audio (.mp3 .ogg)</option>
+<option value="Mesh">Mesh (.fbx .obj)</option>
 </select>
 
 <button class="btn" id="ubtn" onclick="doUpload()"><i class="fas fa-rocket"></i><span>Upload (1 Coin)</span></button>
@@ -226,8 +236,10 @@ textarea{resize:vertical;min-height:50px}
 <h3 style="text-align:center" id="rtitle">✅ Uploaded!</h3>
 <div class="row"><span>Asset ID</span><code id="raid" onclick="cp(this)">—</code></div>
 <div class="row"><span>Insert URL</span><code id="rurl" onclick="cp(this)">—</code></div>
-<div class="row" id="rlink"><span>Toolbox</span><a id="rtbox" href="#" target="_blank" style="color:var(--pg)">Open ↗</a></div>
+<div class="row" id="rlink"><span>Toolbox</span><a id="rtbox" href="#" target="_blank">Open in Browser ↗</a></div>
 </div>
+
+<div class="note">⚠️ Model (.rbxm) not yet supported by Roblox Open Cloud API.<br>Supported: Images (Decal), Audio, Mesh</div>
 </div>
 </div>
 
@@ -248,7 +260,7 @@ textarea{resize:vertical;min-height:50px}
 </select>
 
 <label>Bukti Transfer (opsional)</label>
-<input type="text" id="tuProof" placeholder="Nomor transaksi / screenshot link">
+<input type="text" id="tuProof" placeholder="No transaksi / link screenshot">
 
 <button class="btn" id="tuBtn" onclick="doTopupReq()"><i class="fas fa-paper-plane"></i><span>Kirim Request Topup</span></button>
 <div class="msg" id="tuMsg"></div>
@@ -263,6 +275,10 @@ textarea{resize:vertical;min-height:50px}
 </div>
 </div>
 
+<div class="footer glass" style="padding:12px;border-radius:12px">
+<p>⚡ Roblox Asset Uploader · Open Cloud API · <a href="admin.html" style="color:var(--pg);text-decoration:none">Admin</a></p>
+</div>
+
 </div>
 </div>
 
@@ -270,22 +286,34 @@ textarea{resize:vertical;min-height:50px}
 <div class="modal-bg" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
 <div class="modal glass">
 <button class="close" onclick="document.getElementById('helpModal').classList.remove('show')"><i class="fas fa-times"></i></button>
-<h2>📖 Help</h2>
+<h2>📖 Help Guide</h2>
 <h3>🔑 Get API Key</h3>
 <ol>
 <li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
 <li>Create API Key</li>
 <li>Permissions → Assets → Read ✅ Write ✅</li>
 <li>IP: <code>0.0.0.0/0</code></li>
-<li>Save & copy</li>
+<li>Save & copy key</li>
 </ol>
-<h3>👤 User ID</h3>
-<ol><li>Profile URL number = User ID</li></ol>
+<h3>👤 Find User ID</h3>
+<ol><li>Go to roblox.com/users/<code>NUMBER</code>/profile</li><li>The number = your User ID</li></ol>
+<h3>📁 Supported Files</h3>
+<ul>
+<li><strong>Images</strong> → .png .jpg (uploaded as Decal)</li>
+<li><strong>Audio</strong> → .mp3 .ogg (uploaded as Audio)</li>
+<li><strong>Mesh</strong> → .fbx .obj (uploaded as MeshPart)</li>
+</ul>
 <h3>💰 Coins</h3>
 <ul>
 <li>Each upload costs coins</li>
 <li>Top up via payment methods</li>
-<li>Admin will approve your topup</li>
+<li>Admin will approve your request</li>
+</ul>
+<h3>⚠️ Common Errors</h3>
+<ul>
+<li><strong>401</strong> = Wrong API Key</li>
+<li><strong>403</strong> = Missing permissions</li>
+<li><strong>429</strong> = Rate limited, wait 1 min</li>
 </ul>
 </div>
 </div>
@@ -296,19 +324,16 @@ var token=localStorage.getItem('token')||'';
 var coins=0;
 var file=null;
 
-// Stars
 (function(){var c=document.getElementById('stars');for(var i=0;i<100;i++){var s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.setProperty('--d',(2+Math.random()*4)+'s');s.style.setProperty('--o',(0.3+Math.random()*0.7));s.style.animationDelay=Math.random()*5+'s';var sz=1+Math.random()*2;s.style.width=s.style.height=sz+'px';c.appendChild(s)}})();
 
-// Check login
 if(token){checkMe()}
 
-function api(path,method,body,extraHeaders){
+function api(path,method,body){
   var h={'Content-Type':'application/json'};
   if(token)h['Authorization']='Bearer '+token;
-  if(extraHeaders){for(var k in extraHeaders)h[k]=extraHeaders[k]}
-  var opts={method:method||'GET',headers:h};
-  if(body)opts.body=JSON.stringify(body);
-  return fetch(API+path,opts).then(function(r){return r.json()});
+  var o={method:method||'GET',headers:h};
+  if(body)o.body=JSON.stringify(body);
+  return fetch(API+path,o).then(function(r){return r.json()});
 }
 
 function checkMe(){
@@ -319,11 +344,8 @@ function checkMe(){
       document.getElementById('welcomeUser').textContent='Hi, '+d.username;
       document.getElementById('authPage').classList.remove('active');
       document.getElementById('mainPage').classList.add('active');
-      loadPayment();
-      loadCoinSettings();
-    }else{
-      token='';localStorage.removeItem('token');
-    }
+      loadPayment();loadCoinSettings();
+    }else{token='';localStorage.removeItem('token')}
   }).catch(function(){token='';localStorage.removeItem('token')});
 }
 
@@ -345,8 +367,7 @@ function doLogin(){
   api('/api/login','POST',{username:u,password:p}).then(function(d){
     b.classList.remove('ld');b.disabled=false;
     if(d.success){
-      token=d.token;localStorage.setItem('token',token);
-      coins=d.coin||0;
+      token=d.token;localStorage.setItem('token',token);coins=d.coin||0;
       document.getElementById('coinDisplay').textContent=coins;
       document.getElementById('welcomeUser').textContent='Hi, '+d.username;
       document.getElementById('authPage').classList.remove('active');
@@ -365,8 +386,7 @@ function doRegister(){
   api('/api/register','POST',{username:u,password:p}).then(function(d){
     b.classList.remove('ld');b.disabled=false;
     if(d.success){
-      token=d.token;localStorage.setItem('token',token);
-      coins=0;
+      token=d.token;localStorage.setItem('token',token);coins=0;
       document.getElementById('coinDisplay').textContent='0';
       document.getElementById('welcomeUser').textContent='Hi, '+d.username;
       document.getElementById('authPage').classList.remove('active');
@@ -376,11 +396,7 @@ function doRegister(){
   }).catch(function(){b.classList.remove('ld');b.disabled=false;m.className='msg er';m.textContent='Network error'});
 }
 
-function doLogout(){
-  token='';localStorage.removeItem('token');
-  document.getElementById('mainPage').classList.remove('active');
-  document.getElementById('authPage').classList.add('active');
-}
+function doLogout(){token='';localStorage.removeItem('token');document.getElementById('mainPage').classList.remove('active');document.getElementById('authPage').classList.add('active')}
 
 function showPage(p){
   var tabs=document.querySelectorAll('.tabs .tab');
@@ -396,7 +412,6 @@ function showPage(p){
 
 function showHelp(){document.getElementById('helpModal').classList.add('show')}
 
-// Payment
 function loadPayment(){
   api('/api/admin/payment/get','GET').then(function(d){
     var h='<div class="pay-methods">';
@@ -408,7 +423,6 @@ function loadPayment(){
     if(d.norek)h+='<div class="pay-card"><i class="fas fa-university"></i>'+(d.bank_name||'Bank')+'<strong>'+d.norek+'</strong></div>';
     h+='</div>';
     document.getElementById('payInfo').innerHTML=h;
-
     var sel=document.getElementById('tuMethod');
     sel.innerHTML='<option value="">-- Pilih --</option>';
     if(d.dana)sel.innerHTML+='<option value="Dana">Dana</option>';
@@ -429,7 +443,6 @@ function loadCoinSettings(){
   }).catch(function(){});
 }
 
-// Topup
 function doTopupReq(){
   var a=parseInt(document.getElementById('tuAmount').value)||0;
   var m=document.getElementById('tuMethod').value;
@@ -445,47 +458,40 @@ function doTopupReq(){
   }).catch(function(){b.classList.remove('ld');b.disabled=false;msg.className='msg er';msg.textContent='Network error'});
 }
 
-// History
 function loadHistory(){
   api('/api/topup/history','GET').then(function(d){
-    var list=document.getElementById('txList');
-    if(!d.transactions||d.transactions.length===0){list.innerHTML='<p style="font-size:13px;color:var(--tx2)">No transactions yet</p>';return}
+    var el=document.getElementById('txList');
+    if(!d.transactions||d.transactions.length===0){el.innerHTML='<p style="font-size:13px;color:var(--tx2)">No transactions yet</p>';return}
     var h='';
     d.transactions.forEach(function(t){
       var sc=t.status==='approved'?'st-approved':t.status==='rejected'?'st-rejected':'st-pending';
       h+='<div class="tx-item"><div style="display:flex;justify-content:space-between;align-items:center"><strong>+'+t.amount+' coins</strong><span class="status '+sc+'">'+t.status+'</span></div><div style="margin-top:4px;color:var(--tx2)">'+t.method+' · '+new Date(t.time).toLocaleDateString()+'</div></div>';
     });
-    list.innerHTML=h;
+    el.innerHTML=h;
   }).catch(function(){});
 }
 
-// File
 document.getElementById('finp').addEventListener('change',function(e){if(e.target.files.length)pickFile(e.target.files[0])});
-document.getElementById('dz').addEventListener('click',function(){document.getElementById('finp').click()});
 
 function pickFile(f){
-  var exts=['.rbxm','.rbxmx','.fbx','.obj','.png','.jpg','.jpeg','.mp3','.ogg'];
+  var exts=['.png','.jpg','.jpeg','.mp3','.ogg','.fbx','.obj'];
   var ext='.'+f.name.split('.').pop().toLowerCase();
-  if(exts.indexOf(ext)===-1){alert('Format not supported');return}
+  if(exts.indexOf(ext)===-1){alert('Format not supported. Use: '+exts.join(', '));return}
+  if(f.size>50*1024*1024){alert('File too large (max 50MB)');return}
   file=f;
   document.getElementById('dz').style.display='none';
   document.getElementById('fshow').classList.add('show');
   document.getElementById('fname').textContent=f.name;
   document.getElementById('fsize').textContent=(f.size<1048576?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB');
   if(!document.getElementById('aname').value)document.getElementById('aname').value=f.name.replace(/\.[^.]+$/,'');
-  var tm={'.rbxm':'Model','.rbxmx':'Model','.png':'Decal','.jpg':'Decal','.jpeg':'Decal','.mp3':'Audio','.ogg':'Audio','.fbx':'Mesh','.obj':'Mesh'};
+  var tm={'.png':'Decal','.jpg':'Decal','.jpeg':'Decal','.mp3':'Audio','.ogg':'Audio','.fbx':'Mesh','.obj':'Mesh'};
   if(tm[ext])document.getElementById('atype').value=tm[ext];
 }
 
-function clearFile(){
-  file=null;document.getElementById('finp').value='';
-  document.getElementById('dz').style.display='';
-  document.getElementById('fshow').classList.remove('show');
-}
+function clearFile(){file=null;document.getElementById('finp').value='';document.getElementById('dz').style.display='';document.getElementById('fshow').classList.remove('show')}
 
-// Upload
 function doUpload(){
-  if(!file){alert('Select file');return}
+  if(!file){alert('Select a file');return}
   var uid=document.getElementById('uid').value.trim();
   var key=document.getElementById('key').value.trim();
   if(!uid){alert('Enter User ID');return}
@@ -496,7 +502,6 @@ function doUpload(){
   btn.classList.add('ld');btn.disabled=true;
   msg.className='msg info';msg.textContent='⏳ Checking coins...';
 
-  // Use coin first
   api('/api/use-coin','POST',{}).then(function(d){
     if(!d.success){
       btn.classList.remove('ld');btn.disabled=false;
@@ -513,13 +518,13 @@ function doUpload(){
     fd.append('apiKey',key);
     fd.append('assetType',document.getElementById('atype').value);
     fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
-    fd.append('description','Uploaded via RBXM Converter');
+    fd.append('description','Uploaded via Asset Uploader');
 
     var x=new XMLHttpRequest();
     x.open('POST','/api/upload');
     x.timeout=60000;
-    x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='Timeout'};
-    x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='Network error'};
+    x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='❌ Timeout'};
+    x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='❌ Network error'};
     x.onload=function(){
       btn.classList.remove('ld');btn.disabled=false;
       try{
@@ -528,28 +533,25 @@ function doUpload(){
           msg.className='msg ok';msg.textContent='✅ Upload successful!';
           document.getElementById('res').classList.add('show');
           if(r.assetId){
+            document.getElementById('rtitle').textContent='✅ Asset Uploaded!';
             document.getElementById('raid').textContent=r.assetId;
             document.getElementById('rurl').textContent='rbxassetid://'+r.assetId;
             document.getElementById('rtbox').href='https://www.roblox.com/library/'+r.assetId;
+            document.getElementById('rlink').style.display='';
           }else{
+            document.getElementById('rtitle').textContent='✅ Submitted!';
             document.getElementById('raid').textContent='Processing...';
             document.getElementById('rurl').textContent='Check inventory';
+            document.getElementById('rlink').style.display='none';
           }
-        }else{msg.className='msg er';msg.textContent='❌ '+r.error}
-      }catch(e){msg.className='msg er';msg.textContent='Bad response'}
+        }else{msg.className='msg er';msg.textContent='❌ '+(r.error||'Failed')}
+      }catch(e){msg.className='msg er';msg.textContent='❌ Bad response'}
     };
     x.send(fd);
-  }).catch(function(e){
-    btn.classList.remove('ld');btn.disabled=false;
-    msg.className='msg er';msg.textContent='Network error';
-  });
+  }).catch(function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='❌ Network error'});
 }
 
-function cp(el){
-  var t=el.textContent;if(!t||t==='—')return;
-  navigator.clipboard.writeText(t);el.style.color='var(--ok)';
-  setTimeout(function(){el.style.color=''},1000);
-}
+function cp(el){var t=el.textContent;if(!t||t==='—')return;navigator.clipboard.writeText(t);el.style.color='var(--ok)';setTimeout(function(){el.style.color=''},1000)}
 </script>
 </body>
 </html>

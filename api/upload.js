@@ -57,7 +57,7 @@ module.exports = function(req, res) {
     combined.set(new Uint8Array(fd.buffer, fd.byteOffset, fd.length), off); off += fd.length;
     combined.set(new Uint8Array(b3.buffer, b3.byteOffset, b3.length), off);
 
-    fetch('https://apis.roblox.com/assets/v1/assets', {
+    fetch('https://apis.roblox.com/assets/v2beta1/assets', {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -77,8 +77,14 @@ module.exports = function(req, res) {
       if (result.status < 200 || result.status >= 300) {
         var msg = rd.message || rd.error || 'Error ' + result.status;
         if (result.status === 401) msg = 'Invalid API Key';
-        if (result.status === 403) msg = 'Missing permissions - need Assets Read+Write and IP 0.0.0.0/0';
+        if (result.status === 403) msg = 'Missing permissions';
         if (result.status === 429) msg = 'Rate limited - wait 1 min';
+        if (result.status === 404) msg = 'API endpoint not found - trying v1...';
+        
+        if (result.status === 404) {
+          return tryV1(reqJson, combined, B, apiKey, res);
+        }
+        
         return res.status(result.status).json({ error: msg, details: rd });
       }
 
@@ -109,6 +115,53 @@ module.exports = function(req, res) {
     });
   });
 };
+
+function tryV1(reqJson, body, boundary, apiKey, res) {
+  return fetch('https://apis.roblox.com/assets/v1/assets', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'multipart/form-data; boundary=' + boundary
+    },
+    body: body
+  })
+  .then(function(rr) {
+    return rr.text().then(function(txt) {
+      return { status: rr.status, text: txt };
+    });
+  })
+  .then(function(result) {
+    var rd;
+    try { rd = JSON.parse(result.text); } catch(e) { rd = { raw: result.text }; }
+
+    if (result.status < 200 || result.status >= 300) {
+      var msg = rd.message || rd.error || 'Error ' + result.status;
+      return res.status(result.status).json({ error: msg, details: rd });
+    }
+
+    var aid = null;
+    if (rd.assetId) aid = rd.assetId;
+    if (rd.response && rd.response.assetId) aid = rd.response.assetId;
+
+    if (!aid && rd.path) {
+      return doPoll(rd.path, apiKey, 0).then(function(id) {
+        return res.status(200).json({
+          success: true,
+          assetId: id,
+          toolboxUrl: id ? 'https://www.roblox.com/library/' + id : null,
+          insertUrl: id ? 'rbxassetid://' + id : null
+        });
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      assetId: aid,
+      toolboxUrl: aid ? 'https://www.roblox.com/library/' + aid : null,
+      insertUrl: aid ? 'rbxassetid://' + aid : null
+    });
+  });
+}
 
 function parseParts(buf, boundary) {
   var result = { fields: {}, file: null };
@@ -161,8 +214,8 @@ function findBuf(buf, search, from) {
 
 function getMime(f) {
   var e = (f || '').split('.').pop().toLowerCase();
-  if (e === 'rbxm') return 'model/x.rbxm';
-  if (e === 'rbxmx') return 'model/x.rbxmx';
+  if (e === 'rbxm') return 'model/rbxm';
+  if (e === 'rbxmx') return 'model/rbxmx';
   if (e === 'png') return 'image/png';
   if (e === 'jpg') return 'image/jpeg';
   if (e === 'jpeg') return 'image/jpeg';

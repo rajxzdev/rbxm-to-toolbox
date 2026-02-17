@@ -161,8 +161,8 @@ function findBuf(buf, search, from) {
 
 function getMime(f) {
   var e = (f || '').split('.').pop().toLowerCase();
-  if (e === 'rbxm') return 'application/xml';
-  if (e === 'rbxmx') return 'application/xml';
+  if (e === 'rbxm') return 'application/octet-stream';
+  if (e === 'rbxmx') return 'application/octet-stream';
   if (e === 'png') return 'image/png';
   if (e === 'jpg') return 'image/jpeg';
   if (e === 'jpeg') return 'image/jpeg';

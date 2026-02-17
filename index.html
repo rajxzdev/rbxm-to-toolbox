@@ -4,77 +4,195 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RBXM Converter</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:#0a0612;color:#f1e8ff;min-height:100vh;overflow-x:hidden}
+:root{--bg:#0a0612;--p1:#1a0a2e;--p2:#2d1b69;--p3:#7c3aed;--pg:#a78bfa;--ps:#c4b5fd;--pk:#ec4899;--tx:#f1e8ff;--tx2:rgba(241,232,255,.55);--ok:#34d399;--er:#f87171;--wn:#fbbf24;--gl:rgba(139,92,246,.08);--gb:rgba(139,92,246,.2);--r:20px;--rs:12px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(124,58,237,.15),transparent),radial-gradient(ellipse at 80% 70%,rgba(236,72,153,.1),transparent);z-index:0;pointer-events:none}
-.box{max-width:600px;margin:20px auto;padding:24px;background:rgba(139,92,246,.08);backdrop-filter:blur(40px);border:1px solid rgba(139,92,246,.2);border-radius:20px;position:relative;z-index:1}
-.box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
-h1{font-size:22px;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#c4b5fd,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sub{text-align:center;font-size:13px;color:rgba(241,232,255,.5);margin-bottom:24px}
-label{display:block;font-size:13px;color:rgba(241,232,255,.6);margin-bottom:6px;margin-top:16px}
-input,select,textarea{width:100%;padding:12px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:12px;color:#f1e8ff;font-family:inherit;font-size:14px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation:tw var(--d) ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:var(--o);transform:scale(1)}}
+
+.glass{background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(139,92,246,.04),rgba(236,72,153,.04));backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--gb);border-radius:var(--r);position:relative;overflow:hidden}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);pointer-events:none}
+
+.container{max-width:600px;margin:0 auto;padding:16px;position:relative;z-index:1}
+.page{display:none}.page.active{display:block}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-bottom:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--p3),var(--pk));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--ps),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo small{font-size:11px;color:var(--tx2);display:block}
+.coin-badge{display:flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:20px;font-size:13px;font-weight:600;color:var(--wn)}
+.user-menu{display:flex;gap:8px;align-items:center}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--gb);background:var(--gl);color:var(--pg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .3s}
+.icon-btn:hover{border-color:var(--p3);background:rgba(124,58,237,.15)}
+
+/* Inputs */
+label{display:block;font-size:13px;color:var(--tx2);margin-bottom:6px;margin-top:14px}
+input,select,textarea{width:100%;padding:12px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:var(--rs);color:var(--tx);font-family:inherit;font-size:14px;outline:none;transition:all .3s}
+input:focus,select:focus,textarea:focus{border-color:var(--p3);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
 input::placeholder{color:rgba(241,232,255,.25)}
-select{cursor:pointer}select option{background:#1a0a2e}
+select{cursor:pointer}select option{background:var(--p1)}
 textarea{resize:vertical;min-height:50px}
-.btn{width:100%;padding:14px;margin-top:16px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:12px;color:#f1e8ff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
-.btn:hover{border-color:#7c3aed;box-shadow:0 0 20px rgba(124,58,237,.2)}
+
+/* Buttons */
+.btn{width:100%;padding:14px;margin-top:14px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(236,72,153,.15));border:1px solid rgba(124,58,237,.35);border-radius:var(--rs);color:var(--tx);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .3s}
+.btn:hover{border-color:var(--p3);box-shadow:0 0 20px rgba(124,58,237,.2)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.ld{pointer-events:none}
 .btn.ld span{display:none}
 .btn.ld::after{content:'';width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.msg{margin-top:12px;padding:12px;border-radius:10px;font-size:13px;display:none;word-break:break-all}
-.msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:#34d399}
-.msg.err{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171}
-.msg.info{display:block;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:#a78bfa}
-.drop{border:2px dashed rgba(139,92,246,.25);border-radius:16px;padding:30px;text-align:center;cursor:pointer;margin-top:16px;transition:all .3s}
-.drop:hover{border-color:#7c3aed;background:rgba(124,58,237,.05)}
-.drop i{font-size:32px;color:#a78bfa;display:block;margin-bottom:8px}
-.fileshow{margin-top:12px;padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;display:none;align-items:center;gap:10px;font-size:13px}
-.fileshow.show{display:flex}
-.fileshow .x{margin-left:auto;color:#f87171;cursor:pointer;font-size:16px}
-.result{margin-top:16px;padding:16px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;display:none;text-align:center}
+.btn-sm{width:auto;padding:8px 16px;margin:0;font-size:13px}
+.btn-ok{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3);color:var(--ok)}
+.btn-er{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3);color:var(--er)}
+.btn-ghost{background:transparent;border-color:var(--gb)}
+
+/* Messages */
+.msg{margin-top:10px;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
+.msg.ok{display:block;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:var(--ok)}
+.msg.er{display:block;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--er)}
+.msg.info{display:block;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:var(--pg)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;padding:4px;background:rgba(139,92,246,.06);border-radius:14px;margin-bottom:16px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;color:var(--tx2);transition:all .3s}
+.tab.active{background:rgba(124,58,237,.2);color:var(--tx);border:1px solid rgba(124,58,237,.3)}
+
+/* Cards */
+.card{padding:20px;margin-bottom:12px}
+.card h2{font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:14px;margin-bottom:10px;color:var(--ps)}
+
+/* File upload */
+.drop{border:2px dashed rgba(139,92,246,.25);border-radius:16px;padding:30px;text-align:center;cursor:pointer;transition:all .3s}
+.drop:hover{border-color:var(--p3);background:rgba(124,58,237,.05)}
+.drop i{font-size:32px;color:var(--pg);display:block;margin-bottom:8px}
+.fshow{margin-top:10px;padding:10px 14px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);border-radius:10px;display:none;align-items:center;gap:10px;font-size:13px}
+.fshow.show{display:flex}
+.fshow .x{margin-left:auto;color:var(--er);cursor:pointer}
+
+/* Result */
+.result{margin-top:14px;padding:14px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:14px;display:none}
 .result.show{display:block}
 .result .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:12px;gap:8px;flex-wrap:wrap}
 .result .row:last-child{border:none}
-.result .row span{color:rgba(241,232,255,.5)}
-.result .row code{color:#c4b5fd;cursor:pointer;word-break:break-all}
-.result a{color:#a78bfa;text-decoration:none}
-.locked{opacity:.35;pointer-events:none}
-.help-btn{position:fixed;bottom:20px;right:20px;width:44px;height:44px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:50%;color:#a78bfa;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.result .row span{color:var(--tx2)}
+.result .row code{color:var(--ps);cursor:pointer;word-break:break-all}
+
+/* Payment display */
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pay-card{padding:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);border-radius:10px;text-align:center;font-size:12px}
+.pay-card i{font-size:20px;color:var(--pg);display:block;margin-bottom:4px}
+.pay-card strong{display:block;margin-top:4px;color:var(--tx);font-size:13px;word-break:break-all}
+.qris-img{max-width:200px;margin:10px auto;display:block;border-radius:10px;border:1px solid var(--gb)}
+
+/* TX list */
+.tx-item{padding:12px;margin-bottom:8px;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.1);border-radius:10px;font-size:12px}
+.tx-item .status{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.st-pending{background:rgba(251,191,36,.15);color:var(--wn)}
+.st-approved{background:rgba(52,211,153,.15);color:var(--ok)}
+.st-rejected{background:rgba(248,113,113,.15);color:var(--er)}
+
+/* Auth page */
+.auth-box{max-width:400px;margin:60px auto;padding:32px;text-align:center}
+.auth-box h1{font-size:28px;margin-bottom:6px;background:linear-gradient(135deg,var(--ps),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.auth-box p{font-size:13px;color:var(--tx2);margin-bottom:20px}
+.auth-toggle{margin-top:16px;font-size:13px;color:var(--tx2)}
+.auth-toggle a{color:var(--pg);cursor:pointer;text-decoration:none}
+
+/* Help modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.show{display:flex}
-.modal{max-width:500px;width:100%;max-height:75vh;overflow-y:auto;padding:24px;background:rgba(20,10,40,.95);border:1px solid rgba(139,92,246,.2);border-radius:16px}
-.modal h2{font-size:18px;margin-bottom:16px;color:#c4b5fd}
-.modal h3{font-size:14px;color:#a78bfa;margin:16px 0 8px}
-.modal ol,.modal ul{padding-left:18px;font-size:12px;color:rgba(241,232,255,.6);line-height:1.8}
-.modal code{background:rgba(139,92,246,.12);padding:1px 6px;border-radius:3px;font-size:11px;color:#c4b5fd}
-.modal a{color:#a78bfa}
-.modal .close{float:right;background:none;border:none;color:#f87171;font-size:18px;cursor:pointer}
+.modal{max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:24px}
+.modal h2{font-size:18px;margin-bottom:16px;color:var(--ps)}
+.modal h3{font-size:14px;color:var(--pg);margin:14px 0 6px}
+.modal ol,.modal ul{padding-left:18px;font-size:12px;color:var(--tx2);line-height:1.8}
+.modal code{background:rgba(139,92,246,.12);padding:1px 6px;border-radius:3px;font-size:11px;color:var(--ps)}
+.modal a{color:var(--pg)}
+.modal .close{float:right;background:none;border:none;color:var(--er);font-size:18px;cursor:pointer}
+
+.hidden{display:none}
+@media(max-width:480px){.pay-methods{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<div class="box" style="margin-top:30px">
-<h1>⚡ RBXM → Asset ID</h1>
-<p class="sub">Convert Roblox Studio files to Toolbox assets</p>
+<div class="stars" id="stars"></div>
 
-<label><i class="fas fa-user"></i> User ID</label>
+<!-- AUTH PAGE -->
+<div class="page active" id="authPage">
+<div class="container">
+<div class="auth-box glass card">
+<div class="logo-icon" style="margin:0 auto 16px;width:56px;height:56px;font-size:26px"><i class="fas fa-cube"></i></div>
+<h1>RBXM Converter</h1>
+<p>Convert .rbxm files to Roblox Asset IDs</p>
+
+<div class="tabs" id="authTabs">
+<div class="tab active" onclick="showAuthTab('login')">Login</div>
+<div class="tab" onclick="showAuthTab('register')">Register</div>
+</div>
+
+<div id="loginForm">
+<label>Username</label>
+<input type="text" id="lUser" placeholder="Username">
+<label>Password</label>
+<input type="password" id="lPass" placeholder="Password">
+<button class="btn" id="lBtn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i><span>Login</span></button>
+</div>
+
+<div id="regForm" style="display:none">
+<label>Username</label>
+<input type="text" id="rUser" placeholder="Min 3 characters">
+<label>Password</label>
+<input type="password" id="rPass" placeholder="Min 4 characters">
+<button class="btn" id="rBtn" onclick="doRegister()"><i class="fas fa-user-plus"></i><span>Register</span></button>
+</div>
+
+<div class="msg" id="authMsg"></div>
+</div>
+</div>
+</div>
+
+<!-- MAIN APP -->
+<div class="page" id="mainPage">
+<div class="container">
+
+<div class="header glass">
+<div class="logo">
+<div class="logo-icon"><i class="fas fa-cube"></i></div>
+<div><h1>RBXM Converter</h1><small id="welcomeUser">Welcome</small></div>
+</div>
+<div class="user-menu">
+<div class="coin-badge"><i class="fas fa-coins"></i><span id="coinDisplay">0</span></div>
+<div class="icon-btn" onclick="showPage('topup')" title="Topup"><i class="fas fa-plus"></i></div>
+<div class="icon-btn" onclick="showHelp()" title="Help"><i class="fas fa-question"></i></div>
+<div class="icon-btn" onclick="doLogout()" title="Logout"><i class="fas fa-sign-out-alt"></i></div>
+</div>
+</div>
+
+<!-- NAV -->
+<div class="tabs">
+<div class="tab active" onclick="showPage('convert')">Convert</div>
+<div class="tab" onclick="showPage('topup')">Topup</div>
+<div class="tab" onclick="showPage('history')">History</div>
+</div>
+
+<!-- CONVERT PAGE -->
+<div id="convertPage">
+<div class="card glass">
+<h2><i class="fas fa-exchange-alt" style="color:var(--pg)"></i> Convert RBXM</h2>
+
+<label><i class="fas fa-user"></i> Roblox User ID</label>
 <input type="text" id="uid" placeholder="e.g. 3493541426" inputmode="numeric">
 
 <label><i class="fas fa-key"></i> API Key</label>
-<input type="password" id="key" placeholder="Paste Open Cloud API Key">
-
-<button class="btn" id="vbtn" onclick="doVerify()"><i class="fas fa-shield-alt"></i><span>Verify</span></button>
-<div class="msg" id="vmsg"></div>
-</div>
-
-<div class="box locked" id="step2">
-<h2 style="font-size:16px;margin-bottom:12px">📁 Upload File</h2>
+<input type="password" id="key" placeholder="Open Cloud API Key">
 
 <div class="drop" id="dz" onclick="document.getElementById('finp').click()">
 <i class="fas fa-cloud-upload-alt"></i>
@@ -83,10 +201,10 @@ textarea{resize:vertical;min-height:50px}
 </div>
 <input type="file" id="finp" accept=".rbxm,.rbxmx,.fbx,.obj,.png,.jpg,.jpeg,.mp3,.ogg" hidden>
 
-<div class="fileshow" id="fshow">
-<i class="fas fa-file-code" style="color:#a78bfa"></i>
+<div class="fshow" id="fshow">
+<i class="fas fa-file-code" style="color:var(--pg)"></i>
 <span id="fname">—</span>
-<span id="fsize" style="color:rgba(241,232,255,.4)">—</span>
+<span id="fsize" style="color:var(--tx2)">—</span>
 <i class="fas fa-times x" onclick="clearFile()"></i>
 </div>
 
@@ -101,94 +219,254 @@ textarea{resize:vertical;min-height:50px}
 <option value="Mesh">Mesh (.fbx/.obj)</option>
 </select>
 
-<label>Description (optional)</label>
-<textarea id="adesc" placeholder="Optional..." maxlength="1000" rows="2"></textarea>
-
-<button class="btn" id="ubtn" onclick="doUpload()"><i class="fas fa-rocket"></i><span>Upload to Roblox</span></button>
+<button class="btn" id="ubtn" onclick="doUpload()"><i class="fas fa-rocket"></i><span>Upload (1 Coin)</span></button>
 <div class="msg" id="umsg"></div>
 
 <div class="result" id="res">
-<h3 id="rtitle">✅ Uploaded!</h3>
+<h3 style="text-align:center" id="rtitle">✅ Uploaded!</h3>
 <div class="row"><span>Asset ID</span><code id="raid" onclick="cp(this)">—</code></div>
 <div class="row"><span>Insert URL</span><code id="rurl" onclick="cp(this)">—</code></div>
-<div class="row" id="rlink"><span>Toolbox</span><a id="rtbox" href="#" target="_blank">Open ↗</a></div>
-<br>
-<button class="btn" onclick="resetAll()"><i class="fas fa-redo"></i><span>Convert Another</span></button>
+<div class="row" id="rlink"><span>Toolbox</span><a id="rtbox" href="#" target="_blank" style="color:var(--pg)">Open ↗</a></div>
+</div>
 </div>
 </div>
 
-<button class="help-btn" onclick="document.getElementById('hmod').classList.add('show')"><i class="fas fa-question"></i></button>
+<!-- TOPUP PAGE -->
+<div id="topupPage" style="display:none">
+<div class="card glass">
+<h2><i class="fas fa-coins" style="color:var(--wn)"></i> Top Up Coins</h2>
 
-<div class="modal-bg" id="hmod" onclick="if(event.target===this)this.classList.remove('show')">
-<div class="modal">
-<button class="close" onclick="document.getElementById('hmod').classList.remove('show')"><i class="fas fa-times"></i></button>
-<h2>📖 Help Guide</h2>
+<div id="payInfo"></div>
+
+<label>Jumlah Coin</label>
+<input type="number" id="tuAmount" placeholder="e.g. 10" min="1">
+<p style="font-size:11px;color:var(--tx2);margin-top:4px">Harga: <span id="priceInfo">Rp 1.000/coin</span></p>
+
+<label>Metode Pembayaran</label>
+<select id="tuMethod">
+<option value="">-- Pilih --</option>
+</select>
+
+<label>Bukti Transfer (opsional)</label>
+<input type="text" id="tuProof" placeholder="Nomor transaksi / screenshot link">
+
+<button class="btn" id="tuBtn" onclick="doTopupReq()"><i class="fas fa-paper-plane"></i><span>Kirim Request Topup</span></button>
+<div class="msg" id="tuMsg"></div>
+</div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div id="historyPage" style="display:none">
+<div class="card glass">
+<h2><i class="fas fa-history" style="color:var(--pg)"></i> Transaction History</h2>
+<div id="txList"><p style="font-size:13px;color:var(--tx2)">Loading...</p></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-bg" id="helpModal" onclick="if(event.target===this)this.classList.remove('show')">
+<div class="modal glass">
+<button class="close" onclick="document.getElementById('helpModal').classList.remove('show')"><i class="fas fa-times"></i></button>
+<h2>📖 Help</h2>
 <h3>🔑 Get API Key</h3>
 <ol>
 <li>Go to <a href="https://create.roblox.com/credentials" target="_blank">create.roblox.com/credentials</a></li>
-<li>Click "Create API Key"</li>
+<li>Create API Key</li>
 <li>Permissions → Assets → Read ✅ Write ✅</li>
 <li>IP: <code>0.0.0.0/0</code></li>
-<li>Save & copy key</li>
+<li>Save & copy</li>
 </ol>
-<h3>👤 Find User ID</h3>
-<ol>
-<li>Go to roblox.com profile</li>
-<li>URL number = User ID</li>
-</ol>
-<h3>📁 Get RBXM</h3>
-<ol>
-<li>Studio → right-click model → "Save to File" → .rbxm</li>
-</ol>
-<h3>⚠️ Errors</h3>
+<h3>👤 User ID</h3>
+<ol><li>Profile URL number = User ID</li></ol>
+<h3>💰 Coins</h3>
 <ul>
-<li><strong>401</strong> = Wrong API Key</li>
-<li><strong>403</strong> = Missing permissions</li>
-<li><strong>429</strong> = Wait 1 minute</li>
+<li>Each upload costs coins</li>
+<li>Top up via payment methods</li>
+<li>Admin will approve your topup</li>
 </ul>
 </div>
 </div>
 
 <script>
-var ok=false,file=null;
+var API='https://rbxm-api.mobilador0910.workers.dev';
+var token=localStorage.getItem('token')||'';
+var coins=0;
+var file=null;
 
-function doVerify(){
-  var uid=document.getElementById('uid').value.trim();
-  var key=document.getElementById('key').value.trim();
-  var btn=document.getElementById('vbtn');
-  var msg=document.getElementById('vmsg');
+// Stars
+(function(){var c=document.getElementById('stars');for(var i=0;i<100;i++){var s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.setProperty('--d',(2+Math.random()*4)+'s');s.style.setProperty('--o',(0.3+Math.random()*0.7));s.style.animationDelay=Math.random()*5+'s';var sz=1+Math.random()*2;s.style.width=s.style.height=sz+'px';c.appendChild(s)}})();
 
-  if(!uid||!/^\d+$/.test(uid)){msg.className='msg err';msg.textContent='Enter valid User ID';return;}
-  if(!key||key.length<10){msg.className='msg err';msg.textContent='Enter valid API Key';return;}
+// Check login
+if(token){checkMe()}
 
-  btn.classList.add('ld');btn.disabled=true;
-  msg.className='msg info';msg.textContent='⏳ Verifying...';
-
-  var x=new XMLHttpRequest();
-  x.open('GET','/api/verify?uid='+uid);
-  x.timeout=10000;
-  x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Timeout';};
-  x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Network error';};
-  x.onload=function(){
-    btn.classList.remove('ld');btn.disabled=false;
-    try{
-      var d=JSON.parse(x.responseText);
-      if(d.valid){
-        ok=true;msg.className='msg ok';msg.textContent='✅ Welcome, '+d.displayName+'!';
-        document.getElementById('step2').classList.remove('locked');
-      }else{msg.className='msg err';msg.textContent='❌ '+(d.error||'Failed');}
-    }catch(e){msg.className='msg err';msg.textContent='Bad response: '+x.responseText.substring(0,100);}
-  };
-  x.send();
+function api(path,method,body,extraHeaders){
+  var h={'Content-Type':'application/json'};
+  if(token)h['Authorization']='Bearer '+token;
+  if(extraHeaders){for(var k in extraHeaders)h[k]=extraHeaders[k]}
+  var opts={method:method||'GET',headers:h};
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(API+path,opts).then(function(r){return r.json()});
 }
 
-document.getElementById('finp').addEventListener('change',function(e){if(e.target.files.length)pickFile(e.target.files[0]);});
+function checkMe(){
+  api('/api/me','GET').then(function(d){
+    if(d.username){
+      coins=d.coin||0;
+      document.getElementById('coinDisplay').textContent=coins;
+      document.getElementById('welcomeUser').textContent='Hi, '+d.username;
+      document.getElementById('authPage').classList.remove('active');
+      document.getElementById('mainPage').classList.add('active');
+      loadPayment();
+      loadCoinSettings();
+    }else{
+      token='';localStorage.removeItem('token');
+    }
+  }).catch(function(){token='';localStorage.removeItem('token')});
+}
+
+function showAuthTab(t){
+  var tabs=document.querySelectorAll('#authTabs .tab');
+  tabs[0].classList.toggle('active',t==='login');
+  tabs[1].classList.toggle('active',t==='register');
+  document.getElementById('loginForm').style.display=t==='login'?'':'none';
+  document.getElementById('regForm').style.display=t==='register'?'':'none';
+  document.getElementById('authMsg').className='msg';
+}
+
+function doLogin(){
+  var u=document.getElementById('lUser').value.trim();
+  var p=document.getElementById('lPass').value;
+  var m=document.getElementById('authMsg');
+  if(!u||!p){m.className='msg er';m.textContent='Fill all fields';return}
+  var b=document.getElementById('lBtn');b.classList.add('ld');b.disabled=true;
+  api('/api/login','POST',{username:u,password:p}).then(function(d){
+    b.classList.remove('ld');b.disabled=false;
+    if(d.success){
+      token=d.token;localStorage.setItem('token',token);
+      coins=d.coin||0;
+      document.getElementById('coinDisplay').textContent=coins;
+      document.getElementById('welcomeUser').textContent='Hi, '+d.username;
+      document.getElementById('authPage').classList.remove('active');
+      document.getElementById('mainPage').classList.add('active');
+      loadPayment();loadCoinSettings();
+    }else{m.className='msg er';m.textContent=d.error||'Failed'}
+  }).catch(function(){b.classList.remove('ld');b.disabled=false;m.className='msg er';m.textContent='Network error'});
+}
+
+function doRegister(){
+  var u=document.getElementById('rUser').value.trim();
+  var p=document.getElementById('rPass').value;
+  var m=document.getElementById('authMsg');
+  if(!u||!p){m.className='msg er';m.textContent='Fill all fields';return}
+  var b=document.getElementById('rBtn');b.classList.add('ld');b.disabled=true;
+  api('/api/register','POST',{username:u,password:p}).then(function(d){
+    b.classList.remove('ld');b.disabled=false;
+    if(d.success){
+      token=d.token;localStorage.setItem('token',token);
+      coins=0;
+      document.getElementById('coinDisplay').textContent='0';
+      document.getElementById('welcomeUser').textContent='Hi, '+d.username;
+      document.getElementById('authPage').classList.remove('active');
+      document.getElementById('mainPage').classList.add('active');
+      loadPayment();loadCoinSettings();
+    }else{m.className='msg er';m.textContent=d.error||'Failed'}
+  }).catch(function(){b.classList.remove('ld');b.disabled=false;m.className='msg er';m.textContent='Network error'});
+}
+
+function doLogout(){
+  token='';localStorage.removeItem('token');
+  document.getElementById('mainPage').classList.remove('active');
+  document.getElementById('authPage').classList.add('active');
+}
+
+function showPage(p){
+  var tabs=document.querySelectorAll('.tabs .tab');
+  tabs[0].classList.toggle('active',p==='convert');
+  tabs[1].classList.toggle('active',p==='topup');
+  tabs[2].classList.toggle('active',p==='history');
+  document.getElementById('convertPage').style.display=p==='convert'?'':'none';
+  document.getElementById('topupPage').style.display=p==='topup'?'':'none';
+  document.getElementById('historyPage').style.display=p==='history'?'':'none';
+  if(p==='history')loadHistory();
+  if(p==='topup')loadPayment();
+}
+
+function showHelp(){document.getElementById('helpModal').classList.add('show')}
+
+// Payment
+function loadPayment(){
+  api('/api/admin/payment/get','GET').then(function(d){
+    var h='<div class="pay-methods">';
+    if(d.qris_image)h+='<div class="pay-card" style="grid-column:1/-1"><i class="fas fa-qrcode"></i>QRIS<br><img src="'+d.qris_image+'" class="qris-img"></div>';
+    if(d.dana)h+='<div class="pay-card"><i class="fas fa-wallet"></i>Dana<strong>'+d.dana+'</strong></div>';
+    if(d.gopay)h+='<div class="pay-card"><i class="fas fa-wallet"></i>GoPay<strong>'+d.gopay+'</strong></div>';
+    if(d.ovo)h+='<div class="pay-card"><i class="fas fa-wallet"></i>OVO<strong>'+d.ovo+'</strong></div>';
+    if(d.shopeepay)h+='<div class="pay-card"><i class="fas fa-wallet"></i>ShopeePay<strong>'+d.shopeepay+'</strong></div>';
+    if(d.norek)h+='<div class="pay-card"><i class="fas fa-university"></i>'+(d.bank_name||'Bank')+'<strong>'+d.norek+'</strong></div>';
+    h+='</div>';
+    document.getElementById('payInfo').innerHTML=h;
+
+    var sel=document.getElementById('tuMethod');
+    sel.innerHTML='<option value="">-- Pilih --</option>';
+    if(d.dana)sel.innerHTML+='<option value="Dana">Dana</option>';
+    if(d.gopay)sel.innerHTML+='<option value="GoPay">GoPay</option>';
+    if(d.ovo)sel.innerHTML+='<option value="OVO">OVO</option>';
+    if(d.shopeepay)sel.innerHTML+='<option value="ShopeePay">ShopeePay</option>';
+    if(d.norek)sel.innerHTML+='<option value="Transfer Bank">Transfer Bank</option>';
+    if(d.qris_image)sel.innerHTML+='<option value="QRIS">QRIS</option>';
+  }).catch(function(){});
+}
+
+function loadCoinSettings(){
+  api('/api/admin/coin-settings/get','GET').then(function(d){
+    var price=d.price_per_coin||1000;
+    var cost=d.upload_cost||1;
+    document.getElementById('priceInfo').textContent='Rp '+price.toLocaleString()+'/coin';
+    document.getElementById('ubtn').querySelector('span').textContent='Upload ('+cost+' Coin)';
+  }).catch(function(){});
+}
+
+// Topup
+function doTopupReq(){
+  var a=parseInt(document.getElementById('tuAmount').value)||0;
+  var m=document.getElementById('tuMethod').value;
+  var p=document.getElementById('tuProof').value;
+  var msg=document.getElementById('tuMsg');
+  if(a<1){msg.className='msg er';msg.textContent='Min 1 coin';return}
+  if(!m){msg.className='msg er';msg.textContent='Pilih metode';return}
+  var b=document.getElementById('tuBtn');b.classList.add('ld');b.disabled=true;
+  api('/api/topup/request','POST',{amount:a,method:m,proof:p}).then(function(d){
+    b.classList.remove('ld');b.disabled=false;
+    if(d.success){msg.className='msg ok';msg.textContent='✅ Request terkirim! Tunggu admin approve. ID: '+d.txId}
+    else{msg.className='msg er';msg.textContent=d.error||'Failed'}
+  }).catch(function(){b.classList.remove('ld');b.disabled=false;msg.className='msg er';msg.textContent='Network error'});
+}
+
+// History
+function loadHistory(){
+  api('/api/topup/history','GET').then(function(d){
+    var list=document.getElementById('txList');
+    if(!d.transactions||d.transactions.length===0){list.innerHTML='<p style="font-size:13px;color:var(--tx2)">No transactions yet</p>';return}
+    var h='';
+    d.transactions.forEach(function(t){
+      var sc=t.status==='approved'?'st-approved':t.status==='rejected'?'st-rejected':'st-pending';
+      h+='<div class="tx-item"><div style="display:flex;justify-content:space-between;align-items:center"><strong>+'+t.amount+' coins</strong><span class="status '+sc+'">'+t.status+'</span></div><div style="margin-top:4px;color:var(--tx2)">'+t.method+' · '+new Date(t.time).toLocaleDateString()+'</div></div>';
+    });
+    list.innerHTML=h;
+  }).catch(function(){});
+}
+
+// File
+document.getElementById('finp').addEventListener('change',function(e){if(e.target.files.length)pickFile(e.target.files[0])});
+document.getElementById('dz').addEventListener('click',function(){document.getElementById('finp').click()});
 
 function pickFile(f){
   var exts=['.rbxm','.rbxmx','.fbx','.obj','.png','.jpg','.jpeg','.mp3','.ogg'];
   var ext='.'+f.name.split('.').pop().toLowerCase();
-  if(exts.indexOf(ext)===-1){alert('Format not supported');return;}
-  if(f.size>50*1024*1024){alert('File too large (max 50MB)');return;}
+  if(exts.indexOf(ext)===-1){alert('Format not supported');return}
   file=f;
   document.getElementById('dz').style.display='none';
   document.getElementById('fshow').classList.add('show');
@@ -205,151 +483,72 @@ function clearFile(){
   document.getElementById('fshow').classList.remove('show');
 }
 
+// Upload
 function doUpload(){
-  if(!ok){alert('Verify first');return;}
-  if(!file){alert('Select file');return;}
+  if(!file){alert('Select file');return}
+  var uid=document.getElementById('uid').value.trim();
+  var key=document.getElementById('key').value.trim();
+  if(!uid){alert('Enter User ID');return}
+  if(!key){alert('Enter API Key');return}
 
   var btn=document.getElementById('ubtn');
   var msg=document.getElementById('umsg');
-
   btn.classList.add('ld');btn.disabled=true;
-  msg.className='msg info';msg.textContent='⏳ Testing what server receives...';
+  msg.className='msg info';msg.textContent='⏳ Checking coins...';
 
-  var fd=new FormData();
-  fd.append('file',file);
-  fd.append('userId',document.getElementById('uid').value.trim());
-  fd.append('apiKey',document.getElementById('key').value.trim());
-  fd.append('assetType',document.getElementById('atype').value);
-  fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
-  fd.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
-
-  var x=new XMLHttpRequest();
-  x.open('POST','/api/testupload');
-  x.timeout=15000;
-
-  x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Timeout';};
-  x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg err';msg.textContent='Network error';};
-
-  x.onload=function(){
-    btn.classList.remove('ld');btn.disabled=false;
-    msg.className='msg info';
-    msg.textContent='DEBUG: '+x.responseText;
-  };
-
-  x.send(fd);
-  }
-
-  btn.classList.add('ld');btn.disabled=true;
-  msg.className='msg info';msg.textContent='⏳ Step 1: Sending to server...';
-
-  // Step 1: Test debug endpoint first
-  var fd=new FormData();
-  fd.append('file',file);
-  fd.append('userId',uid);
-  fd.append('apiKey',key);
-  fd.append('assetType',document.getElementById('atype').value);
-  fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
-  fd.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
-
-  var x=new XMLHttpRequest();
-  x.open('POST','/api/debug');
-  x.timeout=15000;
-
-  x.ontimeout=function(){
-    btn.classList.remove('ld');btn.disabled=false;
-    msg.className='msg err';msg.textContent='❌ Timeout sending file';
-  };
-
-  x.onerror=function(){
-    btn.classList.remove('ld');btn.disabled=false;
-    msg.className='msg err';msg.textContent='❌ Network error sending file';
-  };
-
-  x.onload=function(){
-    var debugInfo='';
-    try{debugInfo=x.responseText;}catch(e){}
-
-    msg.className='msg info';msg.textContent='⏳ Step 2: Debug says: '+debugInfo.substring(0,200)+' ... Now uploading to Roblox...';
-
-    // Check if body arrived
-    try{
-      var dd=JSON.parse(debugInfo);
-      if(!dd.hasBody||dd.bodySize<100){
-        btn.classList.remove('ld');btn.disabled=false;
-        msg.className='msg err';msg.textContent='❌ File not received by server. Debug: '+debugInfo;
-        return;
-      }
-    }catch(e){}
-
-    // Step 2: Now send to real upload
-    var fd2=new FormData();
-    fd2.append('file',file);
-    fd2.append('userId',uid);
-    fd2.append('apiKey',key);
-    fd2.append('assetType',document.getElementById('atype').value);
-    fd2.append('displayName',document.getElementById('aname').value.trim()||'Asset');
-    fd2.append('description',document.getElementById('adesc').value.trim()||'Uploaded');
-
-    var x2=new XMLHttpRequest();
-    x2.open('POST','/api/upload');
-    x2.timeout=60000;
-
-    x2.ontimeout=function(){
+  // Use coin first
+  api('/api/use-coin','POST',{}).then(function(d){
+    if(!d.success){
       btn.classList.remove('ld');btn.disabled=false;
-      msg.className='msg err';msg.textContent='❌ Upload timeout (Roblox took too long)';
-    };
+      msg.className='msg er';msg.textContent='❌ '+d.error;
+      return;
+    }
+    coins=d.remaining;
+    document.getElementById('coinDisplay').textContent=coins;
+    msg.textContent='⏳ Uploading to Roblox...';
 
-    x2.onerror=function(){
+    var fd=new FormData();
+    fd.append('file',file);
+    fd.append('userId',uid);
+    fd.append('apiKey',key);
+    fd.append('assetType',document.getElementById('atype').value);
+    fd.append('displayName',document.getElementById('aname').value.trim()||'Asset');
+    fd.append('description','Uploaded via RBXM Converter');
+
+    var x=new XMLHttpRequest();
+    x.open('POST','/api/upload');
+    x.timeout=60000;
+    x.ontimeout=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='Timeout'};
+    x.onerror=function(){btn.classList.remove('ld');btn.disabled=false;msg.className='msg er';msg.textContent='Network error'};
+    x.onload=function(){
       btn.classList.remove('ld');btn.disabled=false;
-      msg.className='msg err';msg.textContent='❌ Upload network error';
-    };
-
-    x2.onload=function(){
-      btn.classList.remove('ld');btn.disabled=false;
-
-      msg.className='msg info';msg.textContent='Response: '+x2.responseText.substring(0,300);
-
       try{
-        var d=JSON.parse(x2.responseText);
-        if(d.success){
-          document.getElementById('res').classList.add('show');
-          document.getElementById('rtitle').textContent='✅ Uploaded!';
+        var r=JSON.parse(x.responseText);
+        if(r.success){
           msg.className='msg ok';msg.textContent='✅ Upload successful!';
-          if(d.assetId){
-            document.getElementById('raid').textContent=d.assetId;
-            document.getElementById('rurl').textContent='rbxassetid://'+d.assetId;
-            document.getElementById('rtbox').href='https://www.roblox.com/library/'+d.assetId;
-            document.getElementById('rlink').style.display='';
+          document.getElementById('res').classList.add('show');
+          if(r.assetId){
+            document.getElementById('raid').textContent=r.assetId;
+            document.getElementById('rurl').textContent='rbxassetid://'+r.assetId;
+            document.getElementById('rtbox').href='https://www.roblox.com/library/'+r.assetId;
           }else{
             document.getElementById('raid').textContent='Processing...';
             document.getElementById('rurl').textContent='Check inventory';
-            document.getElementById('rlink').style.display='none';
           }
-        }else{
-          msg.className='msg err';msg.textContent='❌ Roblox error: '+(d.error||'Unknown')+' | Full: '+x2.responseText.substring(0,200);
-        }
-      }catch(e){
-        msg.className='msg err';msg.textContent='❌ Parse error. Raw: '+x2.responseText.substring(0,300);
-      }
+        }else{msg.className='msg er';msg.textContent='❌ '+r.error}
+      }catch(e){msg.className='msg er';msg.textContent='Bad response'}
     };
-
-    x2.send(fd2);
-  };
-
-  x.send(fd);
+    x.send(fd);
+  }).catch(function(e){
+    btn.classList.remove('ld');btn.disabled=false;
+    msg.className='msg er';msg.textContent='Network error';
+  });
 }
 
 function cp(el){
   var t=el.textContent;if(!t||t==='—')return;
-  navigator.clipboard.writeText(t);el.style.color='#34d399';
-  setTimeout(function(){el.style.color='';},1000);
-}
-
-function resetAll(){
-  clearFile();document.getElementById('aname').value='';
-  document.getElementById('adesc').value='';
-  document.getElementById('res').classList.remove('show');
-  document.getElementById('umsg').className='msg';
+  navigator.clipboard.writeText(t);el.style.color='var(--ok)';
+  setTimeout(function(){el.style.color=''},1000);
 }
 </script>
 </body>

@@ -57,44 +57,54 @@ module.exports = function(req, res) {
       }
     });
 
-    // Build multipart body as Uint8Array
-    var B = '----RobloxUpload' + Date.now();
+    var B = 'RobloxFormBoundary' + Date.now();
 
-    var part1Str = '--' + B + '\r\n' +
-      'Content-Disposition: form-data; name="request"; filename="request.json"\r\n' +
-      'Content-Type: application/json\r\n' +
-      '\r\n' +
-      reqJson + '\r\n' +
-      '--' + B + '\r\n' +
-      'Content-Disposition: form-data; name="fileContent"; filename="' + parts.file.filename + '"\r\n' +
-      'Content-Type: ' + mime + '\r\n' +
-      '\r\n';
+    var CRLF = '\r\n';
+    var part1 = '--' + B + CRLF +
+      'Content-Disposition: form-data; name="request"' + CRLF +
+      'Content-Type: application/json' + CRLF +
+      CRLF +
+      reqJson + CRLF;
 
-    var endStr = '\r\n--' + B + '--\r\n';
+    var part2header = '--' + B + CRLF +
+      'Content-Disposition: form-data; name="fileContent"; filename="' + parts.file.filename + '"' + CRLF +
+      'Content-Type: ' + mime + CRLF +
+      CRLF;
 
-    var part1Buf = Buffer.from(part1Str, 'utf8');
-    var endBuf = Buffer.from(endStr, 'utf8');
-    var fileBuf = parts.file.data;
+    var ending = CRLF + '--' + B + '--' + CRLF;
 
-    // Combine into one Uint8Array
-    var totalLen = part1Buf.length + fileBuf.length + endBuf.length;
-    var combined = new Uint8Array(totalLen);
-    combined.set(new Uint8Array(part1Buf), 0);
-    combined.set(new Uint8Array(fileBuf), part1Buf.length);
-    combined.set(new Uint8Array(endBuf), part1Buf.length + fileBuf.length);
+    var p1 = Buffer.from(part1, 'utf8');
+    var p2h = Buffer.from(part2header, 'utf8');
+    var p3 = Buffer.from(ending, 'utf8');
+    var fileData = parts.file.data;
 
-    // Use global fetch (Node 18+)
+    var totalLen = p1.length + p2h.length + fileData.length + p3.length;
+    var body = new Uint8Array(totalLen);
+    var offset = 0;
+
+    body.set(new Uint8Array(p1.buffer, p1.byteOffset, p1.length), offset);
+    offset += p1.length;
+
+    body.set(new Uint8Array(p2h.buffer, p2h.byteOffset, p2h.length), offset);
+    offset += p2h.length;
+
+    body.set(new Uint8Array(fileData.buffer, fileData.byteOffset, fileData.length), offset);
+    offset += fileData.length;
+
+    body.set(new Uint8Array(p3.buffer, p3.byteOffset, p3.length), offset);
+
     fetch('https://apis.roblox.com/assets/v1/assets', {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
-        'Content-Type': 'multipart/form-data; boundary=' + B
+        'Content-Type': 'multipart/form-data; boundary=' + B,
+        'Content-Length': totalLen.toString()
       },
-      body: combined
+      body: body
     })
-    .then(function(robloxRes) {
-      return robloxRes.text().then(function(txt) {
-        return { status: robloxRes.status, text: txt };
+    .then(function(rr) {
+      return rr.text().then(function(txt) {
+        return { status: rr.status, text: txt };
       });
     })
     .then(function(result) {
